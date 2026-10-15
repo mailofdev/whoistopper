@@ -12,7 +12,17 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    "tsconfig.tsbuildinfo",
+    "public/sw.js",
   ]),
+  {
+    files: ["src/app/**/*.tsx"],
+    rules: {
+      // Server Components catch failed data reads and render a message.
+      // The JSX is built only after the await succeeds.
+      "react-hooks/error-boundaries": "off",
+    },
+  },
 ]);
 
 export default eslintConfig;

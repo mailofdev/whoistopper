@@ -1,0 +1,75 @@
+import { PageHeader } from "@/components/ui/primitives";
+
+export const articles = {
+  about: {
+    title: "About",
+    description: "Who's Topper is an Indian product directory with transparent paid ranking.",
+    body: [
+      "Who's Topper helps people discover products, websites, and tools made for Indian users. Listings can be free. A paid position is a separate, labelled bid in INR.",
+      "The rank is calculated from the verified amount. It is not a review, a rating, or a community vote.",
+    ],
+  },
+  faq: {
+    title: "FAQ",
+    description: "Common questions about listings, ranks, and payments.",
+    body: [
+      "Can I list without paying? Yes. Approved free listings appear after paid rows.",
+      "Does payment guarantee a rank before the money is confirmed? No. The receipt shows the rank only after the provider payment is verified.",
+      "When does the daily board reset? At 00:00 UTC. A payment confirmed at 23:59:59.999 UTC stays on that UTC date. The next day starts empty.",
+      "What wins a tie? The earlier confirmation. If that also matches, the smaller listing id wins.",
+    ],
+  },
+  rules: {
+    title: "Ranking rules",
+    description: "The rules that decide paid positions.",
+    body: [
+      "Scopes are all-time, the current UTC day, and each category. A listing can have one active paid placement in each scope.",
+      "Positions sort by amount in paise, descending. Ties break by earlier confirmation time, then by listing id ascending.",
+      "The minimum new bid and the minimum increase are platform settings. The default minimum is ₹99 and the default increase is ₹10.",
+      "A later smaller payment never lowers an existing bid. If a verified payment cannot improve the placement, it is marked for refund review.",
+      "Daily rows are kept as history. They are excluded from the new UTC day because that day uses a new key.",
+      "Free listings are ordered after every paid row and are labelled Free listing.",
+    ],
+  },
+  terms: {
+    title: "Terms",
+    description: "Terms for using Who's Topper.",
+    body: [
+      "You may browse public listings without an account. Submitting a listing means you have the right to describe that product and that the website is safe to visit.",
+      "Paid placement buys a position under the published ranking rules. It does not buy an endorsement, a review, or a promise of sales.",
+      "We may reject, suspend, or remove listings that impersonate someone, host malware, or break applicable Indian law.",
+    ],
+  },
+  privacy: {
+    title: "Privacy",
+    description: "How Who's Topper handles personal data.",
+    body: [
+      "Public profiles show a display name, username, bio, and approved listings. Email addresses and payment provider identifiers are not public.",
+      "View and click counts store a salted hash, not the raw IP address. Analytics recording pauses in production if the salt is missing.",
+      "You can export your profile, listings, and payment history from account settings, and you can delete the account. Financial ledger rows may be retained where tax or accounting rules require it.",
+      "This product is aimed at adults operating or discovering businesses. It is not a service for children.",
+    ],
+  },
+  refunds: {
+    title: "Refunds",
+    description: "When a ranking payment can be refunded.",
+    body: [
+      "A verified payment that cannot be applied because a higher bid is already active is marked needs refund. Contact support with the receipt id.",
+      "Refunds follow the payment provider's process. Who's Topper does not store card numbers.",
+      "A completed rank is not reversed only because the listing later receives fewer clicks. A provider refund event removes the placement that the refunded order created.",
+      "Sandbox and mock payments are not real charges and cannot be refunded by a bank.",
+    ],
+  },
+} as const;
+
+export function Article({ slug }: { slug: keyof typeof articles }) {
+  const article = articles[slug];
+  return (
+    <>
+      <PageHeader title={article.title} description={article.description} />
+      <div className="max-w-3xl space-y-4 text-sm leading-7 text-secondary">
+        {article.body.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+      </div>
+    </>
+  );
+}
