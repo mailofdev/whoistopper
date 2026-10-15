@@ -79,18 +79,3 @@ body {
     scroll-behavior: auto !important;
   }
 }
-
-.skip-link {
-  position: absolute;
-  left: 1rem;
-  top: -4rem;
-  z-index: 50;
-  border-radius: 0.5rem;
-  background: var(--brand);
-  color: white;
-  padding: 0.5rem 0.75rem;
-}
-
-.skip-link:focus {
-  top: 1rem;
-}
