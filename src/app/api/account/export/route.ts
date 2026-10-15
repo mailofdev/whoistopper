@@ -11,7 +11,7 @@ export async function GET() {
     return new NextResponse(JSON.stringify(data, null, 2), {
       headers: {
         "content-type": "application/json; charset=utf-8",
-        "content-disposition": "attachment; filename=\"whoistopper-export.json\"",
+        "content-disposition": "attachment; filename=\"rankpush-export.json\"",
         "cache-control": "no-store",
       },
     });

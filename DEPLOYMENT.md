@@ -2,9 +2,9 @@
 
 ## Environments
 
-- Local: `.env.local`, mock data on, sandbox payments.
-- Preview: Supabase branch or staging project, `NEXT_PUBLIC_USE_MOCK_DATA=false`, Razorpay test keys if you want real test checkout. Do not point preview webhooks at production data.
-- Production: mock forced off, live Razorpay, service role, analytics salt, cron secret, admin MFA on.
+- Local: `.env.local` and sandbox payments. The board is empty until Supabase is configured.
+- Preview: Supabase branch or staging project, Razorpay test keys if you want real test checkout. Do not point preview webhooks at production data.
+- Production: live Razorpay, service role, analytics salt, cron secret, admin MFA on.
 
 Validate variables with the health route. `configurationGaps()` lists what is missing. It does not print secret values.
 
@@ -12,9 +12,9 @@ Validate variables with the health route. `configurationGaps()` lists what is mi
 
 1. Import the repository. Framework preset is Next.js.
 2. Set the environment variables from `.env.example` for Production and Preview separately.
-3. Add the production domain and HTTPS.
+3. Add the production domain `rankpush.lol` and HTTPS. Set `NEXT_PUBLIC_SITE_URL=https://rankpush.lol`.
 4. Set Auth Site URL and redirect allow-list to the production origin, `/auth/callback`, and `/auth/update-password`.
-5. After deploy, open `/api/health`, `/sitemap.xml`, `/robots.txt`, and `/manifest.webmanifest`.
+5. After deploy, open `/api/health`, `/sitemap.xml`, and `/robots.txt`.
 
 ## Database
 
@@ -32,7 +32,7 @@ Use `/api/health` and the admin webhook page. Add Sentry later with `SENTRY_DSN`
 
 ## PWA
 
-The manifest, icons, and `public/sw.js` are included. The service worker precaches the offline page and icons. It does not cache `/api`, dashboards, admin, auth, account, or payment routes. Installation depends on the browser: Chromium offers `beforeinstallprompt`; Safari on iOS uses the share sheet. Push notifications are not implemented.
+Install is deferred. The app does not register `public/sw.js`, does not show an install button, and does not publish a web manifest. A later phase can turn that shell back on. The offline notice in the header still appears when the browser reports no connection.
 
 ## Before charging users
 

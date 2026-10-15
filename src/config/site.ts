@@ -1,14 +1,19 @@
 export const site = {
-  name: "Who's Topper",
-  shortName: "Topper",
+  id: "rankpush",
+  name: "RankPush",
+  shortName: "RankPush",
+  domain: "rankpush.lol",
   description:
-    "India's transparent product leaderboard. Discover startups, tools, and websites, or pay in INR for a clearly labelled ranking position.",
+    "Public leaderboard for products, websites, and tools. A paid rank is a verified INR bid, labelled as paid placement.",
   locale: "en-IN",
-  themeColor: "#4F46E5",
-  backgroundColor: "#F8FAFC",
+  themeColor: "#D4145A",
+  backgroundColor: "#FFF6F8",
+  verificationFile: "rankpush.txt",
 } as const;
 
 export function siteUrl(): string {
   const configured = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
-  return configured || "http://localhost:3000";
+  if (configured) return configured;
+  if (process.env.NODE_ENV === "production") return "https://rankpush.lol";
+  return "http://localhost:3000";
 }

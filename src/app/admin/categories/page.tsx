@@ -29,7 +29,7 @@ export default async function CategoriesAdminPage() {
               <input className="h-11 rounded-lg border border-line px-3 sm:col-span-2" name="description" defaultValue={category.description} aria-label="Description" />
               <input className="h-11 rounded-lg border border-line px-3" name="sortOrder" type="number" defaultValue={category.sortOrder} aria-label="Sort order" />
               <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="isActive" defaultChecked={category.isActive} /> Active</label>
-              <button className="h-11 rounded-lg bg-brand px-4 text-sm font-semibold text-white" type="submit">Save</button>
+              <button className="h-11 rounded-lg bg-brand px-4 text-sm font-semibold text-on-brand" type="submit">Save</button>
             </form>
           </Card>
         ))}

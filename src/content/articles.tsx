@@ -3,9 +3,9 @@ import { PageHeader } from "@/components/ui/primitives";
 export const articles = {
   about: {
     title: "About",
-    description: "Who's Topper is an Indian product directory with transparent paid ranking.",
+    description: "RankPush is an Indian product directory with transparent paid ranking.",
     body: [
-      "Who's Topper helps people discover products, websites, and tools made for Indian users. Listings can be free. A paid position is a separate, labelled bid in INR.",
+      "RankPush helps people discover products, websites, and tools made for Indian users. Listings can be free. A paid position is a separate, labelled bid in INR.",
       "The rank is calculated from the verified amount. It is not a review, a rating, or a community vote.",
     ],
   },
@@ -33,7 +33,7 @@ export const articles = {
   },
   terms: {
     title: "Terms",
-    description: "Terms for using Who's Topper.",
+    description: "Terms for using RankPush.",
     body: [
       "You may browse public listings without an account. Submitting a listing means you have the right to describe that product and that the website is safe to visit.",
       "Paid placement buys a position under the published ranking rules. It does not buy an endorsement, a review, or a promise of sales.",
@@ -42,7 +42,7 @@ export const articles = {
   },
   privacy: {
     title: "Privacy",
-    description: "How Who's Topper handles personal data.",
+    description: "How RankPush handles personal data.",
     body: [
       "Public profiles show a display name, username, bio, and approved listings. Email addresses and payment provider identifiers are not public.",
       "View and click counts store a salted hash, not the raw IP address. Analytics recording pauses in production if the salt is missing.",
@@ -55,7 +55,7 @@ export const articles = {
     description: "When a ranking payment can be refunded.",
     body: [
       "A verified payment that cannot be applied because a higher bid is already active is marked needs refund. Contact support with the receipt id.",
-      "Refunds follow the payment provider's process. Who's Topper does not store card numbers.",
+      "Refunds follow the payment provider's process. RankPush does not store card numbers.",
       "A completed rank is not reversed only because the listing later receives fewer clicks. A provider refund event removes the placement that the refunded order created.",
       "Sandbox and mock payments are not real charges and cannot be refunded by a bank.",
     ],
@@ -67,7 +67,7 @@ export function Article({ slug }: { slug: keyof typeof articles }) {
   return (
     <>
       <PageHeader title={article.title} description={article.description} />
-      <div className="max-w-3xl space-y-4 text-sm leading-7 text-secondary">
+      <div className="glass max-w-3xl space-y-4 rounded-3xl p-5 text-sm leading-7 text-secondary">
         {article.body.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
       </div>
     </>

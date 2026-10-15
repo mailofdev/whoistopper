@@ -8,7 +8,7 @@ export default async function ExportPage() {
   return (
     <>
       <PageHeader title="Export your data" description="The file includes your profile, listings, and payment history. It does not include other people's data." />
-      <a className="inline-flex h-11 items-center rounded-lg bg-brand px-4 text-sm font-semibold text-white" href="/api/account/export">Download JSON</a>
+      <a className="inline-flex h-11 items-center rounded-lg bg-brand px-4 text-sm font-semibold text-on-brand" href="/api/account/export">Download JSON</a>
     </>
   );
 }

@@ -22,7 +22,7 @@ export default async function AnalyticsPage({ searchParams }: { searchParams: Pr
         </select>
         <input className="h-11 rounded-lg border border-line px-3" type="date" name="from" defaultValue={from} aria-label="From" />
         <input className="h-11 rounded-lg border border-line px-3" type="date" name="to" defaultValue={to} aria-label="To" />
-        <button className="h-11 rounded-lg bg-brand px-4 text-sm font-semibold text-white" type="submit">Apply</button>
+        <button className="h-11 rounded-lg bg-brand px-4 text-sm font-semibold text-on-brand" type="submit">Apply</button>
       </form>
       {!series ? <EmptyState title="No listings" body="Analytics appear after you own a listing." /> : (
         <Card>

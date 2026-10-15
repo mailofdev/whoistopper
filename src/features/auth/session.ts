@@ -1,52 +1,9 @@
-import { createHmac, timingSafeEqual } from "node:crypto";
-import { cookies } from "next/headers";
-import { connection } from "next/server";
-import { redirect } from "next/navigation";
-import { forbidden } from "next/navigation";
-import { isMockDataEnabled } from "@/config/data-source";
-import { mockAuth } from "@/mocks/auth";
+import { redirect, forbidden } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/clients";
 import { isAdmin } from "@/lib/security/authorization";
 import type { SessionUser, UserRole } from "@/types/domain";
 
-export const SESSION_COOKIE = "wit_session";
-
-function secret(): string {
-  return process.env.MOCK_SESSION_SECRET || "dev-only-mock-session";
-}
-
-export function sealUserId(userId: string): string {
-  if (process.env.NODE_ENV === "production") {
-    throw new Error("Mock sessions are disabled in production.");
-  }
-  const expires = Date.now() + 14 * 24 * 60 * 60 * 1000;
-  const body = `${userId}.${expires}`;
-  const signature = createHmac("sha256", secret()).update(body).digest("base64url");
-  return `${body}.${signature}`;
-}
-
-export function openUserId(token: string, now: number): string | null {
-  if (process.env.NODE_ENV === "production") return null;
-  const parts = token.split(".");
-  if (parts.length !== 3) return null;
-  const [userId, expires, signature] = parts;
-  if (!userId || !expires || !signature) return null;
-  const expected = createHmac("sha256", secret()).update(`${userId}.${expires}`).digest("base64url");
-  const left = Buffer.from(signature);
-  const right = Buffer.from(expected);
-  if (left.length !== right.length || !timingSafeEqual(left, right)) return null;
-  if (Number(expires) < now) return null;
-  return userId;
-}
-
 export async function getCurrentUser(): Promise<SessionUser | null> {
-  if (isMockDataEnabled()) {
-    await connection();
-    const token = (await cookies()).get(SESSION_COOKIE)?.value;
-    if (!token) return null;
-    const userId = openUserId(token, Date.now());
-    return userId ? mockAuth.userById(userId) : null;
-  }
   const supabase = await createSupabaseServerClient();
   if (!supabase) return null;
   const { data } = await supabase.auth.getUser();
@@ -69,7 +26,7 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
 
 export async function requireUser(): Promise<SessionUser> {
   const user = await getCurrentUser();
-  if (!user) redirect("/login");
+  if (!user) redirect("/");
   return user;
 }
 

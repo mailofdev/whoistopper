@@ -2,7 +2,7 @@
 
 ## Threats and controls
 
-- Account takeover: Supabase Auth in real mode, httpOnly mock cookie only outside production, rate limits on login, signup, and reset. Mock cookies are rejected when `NODE_ENV` is production.
+- Account takeover: operator routes use Supabase Auth, with rate limits on login, signup, and reset. Public rank claims do not create an account.
 - Privilege escalation: roles live in `profiles`. Signup metadata cannot set them. Admin pages call `requireAdmin`. Production requires authenticator assurance level `aal2` unless `REQUIRE_ADMIN_MFA=false`.
 - IDOR: listing edits, analytics, receipts, and upgrades load the row for the signed-in user and check ownership on the server.
 - Payment fraud: the browser success page is not proof of payment. Webhooks verify signatures. Amount, currency, and order id are checked before a rank changes. Duplicate events do not double-credit.
@@ -10,7 +10,7 @@
 - SSRF: domain verification resolves the host and refuses private addresses, does not follow redirects, and times out after 5 seconds.
 - Injection: Supabase queries are parameterized. SQL lives in migrations.
 - CSRF: Server Actions use the Next.js action protocol. The proxy only checks cookie presence and does not grant access.
-- Secrets: service role, webhook secrets, and Razorpay secret are server environment variables. `NEXT_PUBLIC_` is limited to the site URL, Supabase URL, anon key, the mock flag, and the Razorpay key id.
+- Secrets: service role, webhook secrets, and Razorpay secret are server environment variables. `NEXT_PUBLIC_` is limited to the site URL, Supabase URL, anon key, and the Razorpay key id.
 - Uploads: logo files are not accepted yet. An optional https logo URL is stored as text.
 - Logs: the logger redacts keys whose names look like secrets, passwords, tokens, or signatures.
 - Privacy: public profiles omit email. Analytics store a salted hash. Production skips analytics when `ANALYTICS_SALT` is missing. Account export and deletion are available to the signed-in user. Financial rows are retained.

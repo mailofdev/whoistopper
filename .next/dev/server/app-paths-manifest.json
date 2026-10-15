@@ -1,6 +1,15 @@
 {
-  "/manifest.webmanifest/route": "app/manifest.webmanifest/route.js",
+  "/categories/[slug]/page": "app/categories/[slug]/page.js",
+  "/categories/page": "app/categories/page.js",
+  "/faq/page": "app/faq/page.js",
+  "/leaderboard/today/page": "app/leaderboard/today/page.js",
+  "/out/[slug]/route": "app/out/[slug]/route.js",
   "/page": "app/page.js",
+  "/payments/checkout/[orderId]/page": "app/payments/checkout/[orderId]/page.js",
+  "/payments/razorpay/return/route": "app/payments/razorpay/return/route.js",
+  "/privacy/page": "app/privacy/page.js",
+  "/refunds/page": "app/refunds/page.js",
   "/rules/page": "app/rules/page.js",
-  "/signup/page": "app/signup/page.js"
+  "/search/page": "app/search/page.js",
+  "/terms/page": "app/terms/page.js"
 }

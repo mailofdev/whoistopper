@@ -1,15 +1,12 @@
 "use server";
 
-import { cookies, headers } from "next/headers";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { isMockDataEnabled } from "@/config/data-source";
+import { siteUrl } from "@/config/site";
 import { AppError, toPublicError } from "@/lib/errors";
 import { rateLimit } from "@/lib/security/rate-limit";
-import { loginSchema, passwordSchema, resetSchema, signupSchema } from "@/lib/validation/schemas";
 import { createSupabaseServerClient } from "@/lib/supabase/clients";
-import { mockAuth } from "@/mocks/auth";
-import { SESSION_COOKIE, sealUserId } from "@/features/auth/session";
-import { siteUrl } from "@/config/site";
+import { loginSchema, passwordSchema, resetSchema, signupSchema } from "@/lib/validation/schemas";
 
 async function limit(action: string, email: string) {
   const ip = (await headers()).get("x-forwarded-for")?.split(",")[0]?.trim() || "local";
@@ -22,12 +19,6 @@ export async function loginAction(input: unknown): Promise<{ ok: true } | { ok: 
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "Check the form." };
   try {
     await limit("login", parsed.data.email);
-    if (isMockDataEnabled()) {
-      const user = mockAuth.authenticate(parsed.data.email, parsed.data.password);
-      if (!user) return { ok: false, error: "Email or password is incorrect." };
-      (await cookies()).set(SESSION_COOKIE, sealUserId(user.id), { httpOnly: true, sameSite: "lax", secure: false, path: "/", maxAge: 14 * 24 * 60 * 60 });
-      return { ok: true };
-    }
     const supabase = await createSupabaseServerClient();
     if (!supabase) return { ok: false, error: "Sign-in is not configured yet." };
     const { error } = await supabase.auth.signInWithPassword(parsed.data);
@@ -43,11 +34,6 @@ export async function signupAction(input: unknown): Promise<{ ok: true } | { ok:
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "Check the form." };
   try {
     await limit("signup", parsed.data.email);
-    if (isMockDataEnabled()) {
-      const user = mockAuth.register(parsed.data);
-      (await cookies()).set(SESSION_COOKIE, sealUserId(user.id), { httpOnly: true, sameSite: "lax", secure: false, path: "/", maxAge: 14 * 24 * 60 * 60 });
-      return { ok: true };
-    }
     const supabase = await createSupabaseServerClient();
     if (!supabase) return { ok: false, error: "Sign-up is not configured yet." };
     const { error } = await supabase.auth.signUp({
@@ -66,12 +52,8 @@ export async function signupAction(input: unknown): Promise<{ ok: true } | { ok:
 }
 
 export async function logoutAction() {
-  if (isMockDataEnabled()) {
-    (await cookies()).delete(SESSION_COOKIE);
-  } else {
-    const supabase = await createSupabaseServerClient();
-    await supabase?.auth.signOut();
-  }
+  const supabase = await createSupabaseServerClient();
+  await supabase?.auth.signOut();
   redirect("/");
 }
 
@@ -80,7 +62,6 @@ export async function resetAction(input: unknown): Promise<{ ok: true; devLink?:
   if (!parsed.success) return { ok: false, error: "Enter a valid email." };
   try {
     await limit("reset", parsed.data.email);
-    if (isMockDataEnabled()) return { ok: true, ...mockAuth.requestReset(parsed.data.email) };
     const supabase = await createSupabaseServerClient();
     if (!supabase) return { ok: false, error: "Password reset is not configured yet." };
     await supabase.auth.resetPasswordForEmail(parsed.data.email, { redirectTo: `${siteUrl()}/auth/update-password` });
@@ -93,12 +74,7 @@ export async function resetAction(input: unknown): Promise<{ ok: true; devLink?:
 export async function updatePasswordAction(input: unknown): Promise<{ ok: true } | { ok: false; error: string }> {
   const parsed = passwordSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: "Use at least 8 characters." };
-  const token = typeof input === "object" && input && "token" in input ? String((input as { token?: string }).token ?? "") : "";
   try {
-    if (isMockDataEnabled()) {
-      mockAuth.resetPassword(token, parsed.data.password);
-      return { ok: true };
-    }
     const supabase = await createSupabaseServerClient();
     if (!supabase) return { ok: false, error: "Password update is not configured yet." };
     const { error } = await supabase.auth.updateUser({ password: parsed.data.password });

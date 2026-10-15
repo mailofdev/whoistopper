@@ -16,7 +16,7 @@ export function SandboxPanel({ orderId }: { orderId: string }) {
     const result = await sandboxOutcomeAction(orderId, outcome);
     setPending(false);
     if (!result.ok) setError(result.error);
-    else router.push(`/dashboard/payments/${orderId}`);
+    else router.push("/");
   }
 
   return (
@@ -34,7 +34,7 @@ export function SandboxPanel({ orderId }: { orderId: string }) {
             const result = await cancelOrderAction(orderId);
             setPending(false);
             if (!result.ok) setError(result.error);
-            else router.push("/dashboard/payments");
+            else router.push("/");
           }}
           type="button"
         >

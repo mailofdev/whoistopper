@@ -2,19 +2,18 @@
 
 ## Layout
 
-- `src/app` — App Router pages, route handlers, metadata, sitemap, robots, manifest.
+- `src/app` — App Router pages, route handlers, metadata, sitemap, and robots.
 - `src/components/ui` — buttons, forms, cards, badges, pagination.
-- `src/components/layout` — header, footer, mobile menu, install and offline status.
+- `src/components/layout` — header, footer, mobile menu, and offline status. PWA install is not active.
 - `src/features` — auth, products, leaderboard rules, payments, admin, profiles, ownership.
-- `src/lib` — money, URLs, validation, security, logging, Supabase clients, the service switch.
-- `src/mocks` — fictional development data and the mock `AppServices` implementation.
-- `src/config` — site copy, environment parsing, mock-data guard.
+- `src/lib` — money, URLs, validation, security, logging, Supabase clients, and the service entry point.
+- `src/config` — site copy and environment parsing.
 - `supabase/migrations` — schema, RLS, and ranking/payment functions.
-- `src/proxy.ts` — optimistic redirect to login when a session cookie is missing. Pages still authorize on the server.
+- `src/proxy.ts` — keeps operator routes behind a session. Public ranking does not require one. Pages still authorize on the server.
 
 ## Data access
 
-Feature UI calls `getServices()`. That function is server-only. In production it returns Supabase services. Otherwise it returns mock services when `resolveMockDataEnabled()` is true. Components do not read `NEXT_PUBLIC_USE_MOCK_DATA` themselves. The public flag cannot enable mock data in production.
+Feature UI calls `getServices()`. That function is server-only and always returns the Supabase implementation. Components do not keep a local copy of the board. A failed Supabase call shows an error and leaves the board empty.
 
 ## Rendering
 

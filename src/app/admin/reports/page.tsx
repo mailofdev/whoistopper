@@ -18,7 +18,7 @@ export default async function ReportsPage() {
               <p className="mt-1 text-xs text-secondary">{report.status}</p>
               {report.status === "open" || report.status === "reviewing" ? (
                 <div className="mt-3 flex gap-2">
-                  <form action={async () => { "use server"; await decideReportAction(report.id, "resolved", "Resolved by moderator."); }}><button className="h-11 rounded-lg bg-brand px-4 text-sm font-semibold text-white" type="submit">Resolve</button></form>
+                  <form action={async () => { "use server"; await decideReportAction(report.id, "resolved", "Resolved by moderator."); }}><button className="h-11 rounded-lg bg-brand px-4 text-sm font-semibold text-on-brand" type="submit">Resolve</button></form>
                   <form action={async () => { "use server"; await decideReportAction(report.id, "dismissed", "Dismissed by moderator."); }}><button className="h-11 rounded-lg border border-line px-4 text-sm font-semibold" type="submit">Dismiss</button></form>
                 </div>
               ) : null}

@@ -5,6 +5,7 @@ import { assertSandboxAllowed } from "@/features/payments/runtime";
 import { getCurrentUser } from "@/features/auth/session";
 import { toPublicError } from "@/lib/errors";
 import { getServices } from "@/lib/services";
+import { createSupabaseAdminClient } from "@/lib/supabase/clients";
 import { rupeesToPaise } from "@/lib/money";
 import { upgradeSchema } from "@/lib/validation/schemas";
 import type { ScopeType } from "@/types/domain";
@@ -54,9 +55,31 @@ export async function createUpgradeAction(input: unknown) {
 export async function sandboxOutcomeAction(orderId: string, outcome: "success" | "failed" | "cancelled") {
   try {
     assertSandboxAllowed();
+    const admin = createSupabaseAdminClient();
+    if (!admin) return { ok: false as const, error: "The directory database is not connected." };
+    const loaded = await admin.from("payment_orders").select("id, user_id, provider_order_id, amount_paise, product_id").eq("id", orderId).maybeSingle();
+    if (!loaded.data?.provider_order_id) return { ok: false as const, error: "This payment is not open." };
     const user = await getCurrentUser();
-    if (!user) return { ok: false as const, error: "Sign in to complete a test payment." };
-    const result = await getServices().payments.sandboxComplete(user, orderId, outcome);
+    if (loaded.data.user_id && user?.id !== loaded.data.user_id) {
+      return { ok: false as const, error: "This payment belongs to another session." };
+    }
+    if (process.env.NODE_ENV !== "production") {
+      await admin.from("platform_settings").upsert({ key: "payments", value: { allowSandbox: true } });
+    }
+    const type = outcome === "success" ? "payment.captured" : outcome === "failed" ? "payment.failed" : "payment.cancelled";
+    const result = await getServices().payments.applyProviderEvent({
+      provider: "sandbox",
+      eventId: `sandbox_${orderId}_${outcome}_${crypto.randomUUID()}`,
+      type,
+      providerOrderId: loaded.data.provider_order_id,
+      providerPaymentId: outcome === "success" ? `pay_${orderId}` : undefined,
+      amountPaise: Number(loaded.data.amount_paise),
+      currency: "INR",
+    });
+    if (outcome === "success") {
+      await admin.from("products").update({ status: "approved", approved_at: new Date().toISOString() }).eq("id", loaded.data.product_id).in("status", ["pending_review", "draft"]);
+    }
+    revalidatePath("/");
     revalidatePath("/leaderboard");
     revalidatePath("/leaderboard/today");
     return { ok: true as const, result };

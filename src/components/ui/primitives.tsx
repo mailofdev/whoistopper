@@ -11,8 +11,8 @@ export function Button({
     <button
       className={cn(
         "inline-flex h-11 items-center justify-center rounded-lg px-4 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60",
-        variant === "primary" && "bg-brand text-white hover:bg-brand-hover",
-        variant === "secondary" && "border border-line bg-surface text-navy hover:bg-muted",
+        variant === "primary" && "bg-brand text-on-brand hover:bg-brand-hover",
+        variant === "secondary" && "glass-field text-navy hover:bg-white/50",
         variant === "ghost" && "text-navy hover:bg-muted",
         variant === "danger" && "bg-danger text-white",
         className,
@@ -33,9 +33,9 @@ export function Badge({
     <span
       className={cn(
         "inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold",
-        tone === "neutral" && "bg-slate-100 text-secondary",
+        tone === "neutral" && "bg-muted text-secondary",
         tone === "paid" && "bg-muted text-brand",
-        tone === "free" && "bg-slate-100 text-navy",
+        tone === "free" && "bg-muted text-navy",
         tone === "success" && "bg-teal/10 text-teal",
         tone === "warning" && "bg-warning/10 text-warning",
         tone === "danger" && "bg-danger/10 text-danger",
@@ -47,7 +47,7 @@ export function Badge({
 }
 
 export function Card({ className, children }: { className?: string; children: ReactNode }) {
-  return <div className={cn("rounded-2xl border border-line bg-surface p-5 shadow-card", className)}>{children}</div>;
+  return <div className={cn("glass rounded-3xl p-5", className)}>{children}</div>;
 }
 
 export function Alert({ tone = "error", children }: { tone?: "error" | "info" | "success"; children: ReactNode }) {
@@ -55,10 +55,10 @@ export function Alert({ tone = "error", children }: { tone?: "error" | "info" | 
     <div
       role={tone === "error" ? "alert" : "status"}
       className={cn(
-        "rounded-xl border px-4 py-3 text-sm",
-        tone === "error" && "border-danger/30 bg-danger/10 text-danger",
-        tone === "info" && "border-line bg-muted text-navy",
-        tone === "success" && "border-teal/30 bg-teal/10 text-teal",
+        "glass rounded-2xl px-4 py-3 text-sm",
+        tone === "error" && "text-danger",
+        tone === "info" && "text-navy",
+        tone === "success" && "text-teal",
       )}
     >
       {children}
@@ -97,7 +97,7 @@ export function Field({
   );
 }
 
-const controlClass = "h-11 w-full rounded-lg border border-line bg-surface px-3 text-sm text-navy outline-none focus:border-brand";
+const controlClass = "glass-field h-11 w-full rounded-2xl px-3 text-sm text-navy outline-none focus:border-brand";
 
 export function TextInput(props: InputHTMLAttributes<HTMLInputElement>) {
   return <input className={controlClass} {...props} />;
@@ -150,7 +150,7 @@ export function Breadcrumbs({ items }: { items: Array<{ href?: string; label: st
 }
 
 export function Skeleton({ className }: { className?: string }) {
-  return <div className={cn("animate-pulse rounded-xl bg-slate-200", className)} />;
+  return <div className={cn("glass animate-pulse rounded-3xl", className)} />;
 }
 
 export function Pagination({

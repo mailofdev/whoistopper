@@ -1,56 +1,34 @@
 import Link from "next/link";
-import { Suspense } from "react";
-import { logoutAction } from "@/features/auth/actions";
-import { getCurrentUser } from "@/features/auth/session";
-import { isAdmin } from "@/lib/security/authorization";
-import { MobileNav } from "@/components/layout/mobile-nav";
+import { Mark } from "@/components/brand/mark";
+import { SiteSearch } from "@/components/layout/site-search";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
 
 const links = [
-  { href: "/leaderboard", label: "Leaderboard" },
-  { href: "/leaderboard/today", label: "Today" },
+  { href: "/leaderboard/today", label: "Daily" },
   { href: "/categories", label: "Categories" },
-  { href: "/search", label: "Search" },
+  { href: "/about", label: "About" },
 ];
 
 export function SiteHeader() {
   return (
-    <header className="sticky top-0 z-30 border-b border-line bg-surface/95 backdrop-blur">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4">
-        <Link href="/" className="flex items-center gap-2 font-semibold text-navy">
-          <span className="grid h-9 w-9 place-items-center rounded-lg bg-brand text-sm text-white">W</span>
-          Who&apos;s Topper
+    <header className="sticky top-0 z-30 px-3 pt-3">
+      <div className="glass mx-auto flex max-w-3xl flex-wrap items-center gap-2 rounded-3xl px-3 py-2 sm:px-4">
+        <Link href="/" className="mr-auto flex min-w-0 items-center gap-2 text-base font-semibold tracking-tight text-navy">
+          <Mark className="h-8 w-8 shrink-0" />
+          <span className="truncate">Rank<span className="text-brand">Push</span></span>
         </Link>
-        <nav className="hidden items-center gap-5 text-sm font-medium text-secondary md:flex" aria-label="Primary">
+        <nav className="order-last flex w-full gap-1 overflow-x-auto text-sm sm:order-none sm:w-auto" aria-label="Main">
           {links.map((link) => (
-            <Link key={link.href} className="hover:text-navy" href={link.href}>{link.label}</Link>
+            <Link key={link.href} className="shrink-0 rounded-full px-3 py-2 text-secondary hover:bg-white/40 hover:text-navy" href={link.href}>
+              {link.label}
+            </Link>
           ))}
         </nav>
-        <div className="flex items-center gap-2">
-          <Link className="hidden h-11 items-center rounded-lg bg-brand px-4 text-sm font-semibold text-white md:inline-flex" href="/submit">
-            Submit
-          </Link>
-          <Suspense fallback={<span className="h-11 w-20" />}>
-            <AuthLinks />
-          </Suspense>
-          <MobileNav />
+        <div className="contents">
+          <SiteSearch />
+          <ThemeToggle />
         </div>
       </div>
     </header>
-  );
-}
-
-async function AuthLinks() {
-  const user = await getCurrentUser();
-  if (!user) {
-    return <Link className="inline-flex h-11 items-center px-3 text-sm font-semibold" href="/login">Sign in</Link>;
-  }
-  return (
-    <div className="hidden items-center gap-2 md:flex">
-      <Link className="text-sm font-semibold" href="/dashboard">Dashboard</Link>
-      {isAdmin(user) ? <Link className="text-sm font-semibold" href="/admin">Admin</Link> : null}
-      <form action={logoutAction}>
-        <button className="h-11 px-3 text-sm font-semibold text-secondary" type="submit">Log out</button>
-      </form>
-    </div>
   );
 }

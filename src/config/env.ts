@@ -7,8 +7,8 @@ const serverEnvSchema = z.object({
   NEXT_PUBLIC_SITE_URL: optionalUrl,
   NEXT_PUBLIC_SUPABASE_URL: optionalUrl,
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().optional(),
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z.string().optional(),
   SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
-  NEXT_PUBLIC_USE_MOCK_DATA: z.enum(["true", "false"]).optional(),
   NEXT_PUBLIC_RAZORPAY_KEY_ID: z.string().optional(),
   RAZORPAY_KEY_SECRET: z.string().optional(),
   RAZORPAY_WEBHOOK_SECRET: z.string().optional(),
@@ -39,9 +39,13 @@ export interface SupabaseConfig {
   serviceRoleKey: string | null;
 }
 
+function clientKey(env: ServerEnv): string | undefined {
+  return env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+}
+
 export function readSupabaseConfig(env: ServerEnv = readServerEnv()): SupabaseConfig | null {
   const url = env.NEXT_PUBLIC_SUPABASE_URL;
-  const anonKey = env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const anonKey = clientKey(env);
   if (!url || !anonKey) return null;
   return {
     url,
@@ -66,11 +70,8 @@ export function readRazorpayConfig(env: ServerEnv = readServerEnv()): PaymentKey
 
 export function configurationGaps(env: ServerEnv = readServerEnv()): string[] {
   const gaps: string[] = [];
-  if (env.NODE_ENV === "production" && env.NEXT_PUBLIC_USE_MOCK_DATA === "true") {
-    gaps.push("Mock data was requested but is disabled because NODE_ENV is production.");
-  }
-  if (!env.NEXT_PUBLIC_SUPABASE_URL || !env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    gaps.push("Supabase URL or anon key is not set.");
+  if (!env.NEXT_PUBLIC_SUPABASE_URL || !clientKey(env)) {
+    gaps.push("Supabase URL or publishable key is not set.");
   }
   if (env.NODE_ENV === "production" && !env.SUPABASE_SERVICE_ROLE_KEY) {
     gaps.push("SUPABASE_SERVICE_ROLE_KEY is not set. Webhooks and admin maintenance cannot run.");

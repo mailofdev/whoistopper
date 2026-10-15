@@ -42,36 +42,20 @@ export function MobileNav() {
 
 export function AppStatus() {
   const [offline, setOffline] = useState(false);
-  const [install, setInstall] = useState<BeforeInstallPromptEvent | null>(null);
   useEffect(() => {
     const update = () => setOffline(!navigator.onLine);
     update();
-    const onPrompt = (event: Event) => {
-      event.preventDefault();
-      setInstall(event as BeforeInstallPromptEvent);
-    };
     window.addEventListener("online", update);
     window.addEventListener("offline", update);
-    window.addEventListener("beforeinstallprompt", onPrompt);
-    if ("serviceWorker" in navigator) void navigator.serviceWorker.register("/sw.js").catch(() => undefined);
+    if ("serviceWorker" in navigator) {
+      void navigator.serviceWorker.getRegistrations().then((registrations) => {
+        for (const registration of registrations) void registration.unregister();
+      }).catch(() => undefined);
+    }
     return () => {
       window.removeEventListener("online", update);
       window.removeEventListener("offline", update);
-      window.removeEventListener("beforeinstallprompt", onPrompt);
     };
   }, []);
-  return (
-    <>
-      {offline ? <p className="bg-warning/10 px-4 py-2 text-center text-sm text-navy" role="status">You are offline. Reconnect to load new listings or payments.</p> : null}
-      {install ? (
-        <div className="border-b border-line bg-muted px-4 py-2 text-center text-sm">
-          <button className="font-semibold text-brand" onClick={() => void install.prompt()}>Install Who&apos;s Topper</button>
-        </div>
-      ) : null}
-    </>
-  );
-}
-
-interface BeforeInstallPromptEvent extends Event {
-  prompt: () => Promise<void>;
+  return offline ? <p className="bg-warning/10 px-4 py-2 text-center text-sm text-navy" role="status">You are offline. Reconnect to load new listings or payments.</p> : null;
 }

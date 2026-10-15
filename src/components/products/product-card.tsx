@@ -19,10 +19,10 @@ export function ProductMark({ name }: { name: string }) {
 
 export function ProductCard({ product, showRank = false }: { product: ProductCardModel; showRank?: boolean }) {
   return (
-    <article className="rounded-2xl border border-line bg-surface p-4 shadow-card">
+    <article className="glass rounded-3xl p-4">
       <div className="flex gap-3">
         {showRank && product.rank ? (
-          <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-navy text-lg font-semibold text-white">
+          <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-brand text-lg font-semibold text-on-brand">
             <span className="sr-only">Rank </span>
             {product.rank}
           </span>

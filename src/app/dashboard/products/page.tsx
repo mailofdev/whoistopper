@@ -8,7 +8,7 @@ export default async function ProductsPage() {
   const products = await getServices().products.listOwned(user.id);
   return (
     <>
-      <PageHeader title="Listings" description="Drafts stay private. Approved listings appear on public boards." action={<Link className="inline-flex h-11 items-center rounded-lg bg-brand px-4 text-sm font-semibold text-white" href="/submit">Add</Link>} />
+      <PageHeader title="Listings" description="Drafts stay private. Approved listings appear on public boards." action={<Link className="inline-flex h-11 items-center rounded-lg bg-brand px-4 text-sm font-semibold text-on-brand" href="/submit">Add</Link>} />
       {products.length === 0 ? <EmptyState title="No listings yet" body="Submit a product to start." /> : (
         <div className="grid gap-3">
           {products.map((product) => (

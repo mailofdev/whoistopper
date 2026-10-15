@@ -12,7 +12,7 @@ export class AppError extends Error {
 
 export class ConfigurationError extends AppError {
   constructor(
-    message = "The database is not configured. Add Supabase credentials, or use mock data in development.",
+    message = "The directory database is not connected. Add the Supabase URL, anon key, and service role key.",
   ) {
     super(message, "not_configured", 503);
   }

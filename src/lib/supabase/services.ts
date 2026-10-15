@@ -4,6 +4,7 @@ import { openGatewayOrder } from "@/features/payments/gateway";
 import { findReconciliationIssues } from "@/features/payments/reconcile";
 import { resolvePaymentRuntime } from "@/features/payments/runtime";
 import { readServerEnv } from "@/config/env";
+import { site } from "@/config/site";
 import { AppError, ConfigurationError } from "@/lib/errors";
 import { log } from "@/lib/logging/logger";
 import type { AppServices } from "@/lib/data/contracts";
@@ -510,7 +511,7 @@ export const supabaseServices: AppServices = {
       return { orderId: result.orderId, status: result.status, duplicate: result.duplicate, ignored: result.ignored, finalRank: result.finalRank, fulfillment: result.fulfillment };
     },
     async sandboxComplete() {
-      throw new AppError("Use the mock data mode for sandbox completion, or a Razorpay test webhook.", "sandbox_disabled", 403);
+      throw new AppError("Complete a labelled test payment from the public board, or wait for the payment provider to confirm it.", "sandbox_disabled", 403);
     },
     async reconcile() {
       const client = await server();
@@ -650,14 +651,14 @@ export const supabaseServices: AppServices = {
       const host = new URL(product.websiteUrl).hostname;
       const addresses = await lookup(host, { all: true });
       if (addresses.some((item) => isBlockedAddress(item.address))) throw new AppError("That domain cannot be checked from this server.", "ssrf", 400);
-      const response = await fetch(`https://${host}/.well-known/whoistopper.txt`, { redirect: "manual", signal: AbortSignal.timeout(5000) });
+      const response = await fetch(`https://${host}/.well-known/${site.verificationFile}`, { redirect: "manual", signal: AbortSignal.timeout(5000) });
       if (!response.ok || (response.status >= 300 && response.status < 400)) throw new AppError("The verification file was not found.", "verification", 400);
       const text = (await response.text()).slice(0, 2000);
       const { error } = await admin().rpc("confirm_domain_for_user", { p_user_id: user.id, p_product_id: productId, p_file: text });
       fail(error);
     },
     async simulateDomain() {
-      throw new AppError("Domain simulation is only available in development mock mode.", "mock_disabled", 403);
+      throw new AppError("Domain simulation is not available.", "mock_disabled", 403);
     },
     async listForUser(userId) {
       const client = await server();

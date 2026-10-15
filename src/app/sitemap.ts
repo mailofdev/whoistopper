@@ -1,6 +1,5 @@
 import type { MetadataRoute } from "next";
 import { siteUrl } from "@/config/site";
-import { isMockDataEnabled } from "@/config/data-source";
 import { getServices } from "@/lib/services";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -11,9 +10,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: path === "" ? 1 : 0.6,
   }));
   try {
-    if (process.env.NODE_ENV === "production" && !process.env.NEXT_PUBLIC_SUPABASE_URL) return entries;
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return entries;
     const services = getServices();
-    if (isMockDataEnabled() && process.env.NODE_ENV === "production") return entries;
     const products = await services.products.search({ sort: "newest", page: 1, pageSize: 48 });
     const categories = await services.categories.list();
     for (const product of products.items) entries.push({ url: `${siteUrl()}/products/${product.slug}`, changeFrequency: "daily", priority: 0.7 });

@@ -1,54 +1,30 @@
 import Link from "next/link";
+import { Mark } from "@/components/brand/mark";
+import { site } from "@/config/site";
 
-const groups = [
-  {
-    title: "Discover",
-    links: [
-      ["Leaderboard", "/leaderboard"],
-      ["Today", "/leaderboard/today"],
-      ["Categories", "/categories"],
-      ["Trending", "/trending"],
-      ["New", "/new"],
-    ],
-  },
-  {
-    title: "List",
-    links: [
-      ["Submit a product", "/submit"],
-      ["Rules", "/rules"],
-      ["FAQ", "/faq"],
-      ["Contact", "/contact"],
-    ],
-  },
-  {
-    title: "Legal",
-    links: [
-      ["About", "/about"],
-      ["Terms", "/terms"],
-      ["Privacy", "/privacy"],
-      ["Refunds", "/refunds"],
-    ],
-  },
+const links = [
+  ["Rules", "/rules"],
+  ["FAQ", "/faq"],
+  ["Terms", "/terms"],
+  ["Privacy", "/privacy"],
+  ["Refunds", "/refunds"],
 ] as const;
 
 export function SiteFooter() {
   return (
-    <footer className="mt-auto border-t border-line bg-surface">
-      <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:grid-cols-3">
-        {groups.map((group) => (
-          <div key={group.title}>
-            <h2 className="text-sm font-semibold text-navy">{group.title}</h2>
-            <ul className="mt-3 space-y-2 text-sm text-secondary">
-              {group.links.map(([label, href]) => (
-                <li key={href}><Link className="hover:text-navy" href={href}>{label}</Link></li>
-              ))}
-            </ul>
-          </div>
-        ))}
+    <footer className="px-3 pb-4">
+      <div className="glass mx-auto flex max-w-3xl flex-col items-center gap-1 rounded-3xl px-4 py-3 text-center">
+        <p className="flex items-center justify-center gap-2 text-sm font-semibold text-navy">
+          <Mark className="h-5 w-5" />
+          <span>Rank<span className="text-brand">Push</span></span>
+          <span className="font-normal text-secondary">{site.domain}</span>
+        </p>
+        <nav aria-label="Footer" className="flex flex-wrap items-center justify-center gap-1 text-sm text-secondary">
+          {links.map(([label, href]) => (
+            <Link key={href} className="rounded-full px-3 py-2 hover:bg-white/40 hover:text-navy" href={href}>{label}</Link>
+          ))}
+        </nav>
       </div>
-      <p className="border-t border-line px-4 py-4 text-center text-xs text-secondary">
-        Who&apos;s Topper shows paid placement separately from free listings. A rank is a verified INR bid, not a rating.
-      </p>
     </footer>
   );
 }

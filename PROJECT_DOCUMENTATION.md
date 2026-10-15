@@ -2,7 +2,7 @@
 
 ## Scope
 
-Who's Topper helps people in India discover products, SaaS, developer tools, and online businesses. Listing is free after review. Paid positions are optional, priced in INR, and labelled as paid placement.
+RankPush (rankpush.lol) helps people in India discover products, SaaS, developer tools, and online businesses. Listing is free after review. Paid positions are optional, priced in INR, and labelled as paid placement.
 
 ## Roles
 
@@ -17,7 +17,7 @@ Authorization is enforced in server actions and in Supabase Row Level Security. 
 ## Journeys
 
 1. A visitor opens the home page, a leaderboard, a category, or search, then a product page. Outbound clicks go through `/out/[slug]`.
-2. A person creates an account, submits a listing, and verifies ownership by email link or by publishing a token at `https://<host>/.well-known/whoistopper.txt`.
+2. A person creates an account, submits a listing, and verifies ownership by email link or by publishing a token at `https://<host>/.well-known/rankpush.txt`.
 3. With review enabled (the default), a verified listing waits for an administrator. After approval, the owner previews a rank and creates an order. The quoted rank is a preview. The final rank is written only after a verified payment.
 4. An administrator reviews reports, changes listing status, and inspects payment reconciliation and webhook failures.
 

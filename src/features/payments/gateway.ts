@@ -1,6 +1,5 @@
-import { isMockDataEnabled } from "@/config/data-source";
 import { AppError } from "@/lib/errors";
-import { readRazorpayConfig, readServerEnv } from "@/config/env";
+import { readRazorpayConfig } from "@/config/env";
 import { resolvePaymentRuntime } from "@/features/payments/runtime";
 
 export interface GatewayOrder {
@@ -20,9 +19,6 @@ export async function openGatewayOrder(input: {
     throw new AppError("Payments are not configured for this environment.", "payments_unconfigured", 503);
   }
   if (runtime.mode === "sandbox") {
-    if (!isMockDataEnabled() && readServerEnv().NODE_ENV === "production") {
-      throw new AppError("Sandbox payments are disabled in production.", "sandbox_disabled", 403);
-    }
     return {
       provider: "sandbox",
       providerOrderId: `sandbox_${input.receipt}`,

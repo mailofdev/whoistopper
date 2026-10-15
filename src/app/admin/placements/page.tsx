@@ -23,7 +23,7 @@ export default async function PlacementsPage() {
           </select>
           <input className="h-11 w-24 rounded-lg border border-line px-3" name="days" type="number" min={1} max={90} defaultValue={7} aria-label="Days" />
           <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="active" defaultChecked /> Active</label>
-          <button className="h-11 rounded-lg bg-brand px-4 text-sm font-semibold text-white" type="submit">Save placement</button>
+          <button className="h-11 rounded-lg bg-brand px-4 text-sm font-semibold text-on-brand" type="submit">Save placement</button>
         </form>
       </Card>
     </>

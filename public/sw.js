@@ -1,4 +1,5 @@
-const CACHE = "whoistopper-static-v1";
+// Deferred until the PWA phase. The app does not register this worker.
+const CACHE = "rankpush-static-v1";
 const PRECACHE = ["/", "/offline", "/icons/icon-192.png", "/icons/icon-512.png"];
 const PRIVATE_PREFIXES = ["/api", "/dashboard", "/admin", "/auth", "/account", "/payments", "/login", "/signup", "/verify-ownership"];
 

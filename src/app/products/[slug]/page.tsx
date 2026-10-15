@@ -65,7 +65,7 @@ async function ProductDetail({ params }: { params: Promise<{ slug: string }> }) 
               <div className="flex justify-between"><dt>Today (UTC)</dt><dd>{product.todayRank ? `#${product.todayRank} · ${formatInrFromPaise(product.todayAmountPaise ?? 0)}` : "No daily bid"}</dd></div>
               <div className="flex justify-between"><dt>Owner</dt><dd>{product.ownershipVerified ? "Verified" : "Unverified"}</dd></div>
             </dl>
-            <a className="mt-5 inline-flex h-11 w-full items-center justify-center rounded-lg bg-brand text-sm font-semibold text-white" href={`/out/${product.slug}`}>Visit website</a>
+            <a className="mt-5 inline-flex h-11 w-full items-center justify-center rounded-lg bg-brand text-sm font-semibold text-on-brand" href={`/out/${product.slug}`} target="_blank" rel="noopener noreferrer">Visit website</a>
           </Card>
         </div>
         <ReportForm productId={product.id} />

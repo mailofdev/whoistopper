@@ -36,7 +36,7 @@ async function CategoryBoard({
     const { slug } = await params;
     const category = await getServices().categories.getBySlug(slug);
     if (!category) notFound();
-    return <Board scope={{ type: "category", key: category.id }} path={`/categories/${slug}`} searchParams={searchParams} />;
+    return <Board scope={{ type: "category", key: category.id }} period="all_time" categorySlug={slug} searchParams={searchParams} />;
   } catch (error) {
     return <Alert>{toPublicError(error).message}</Alert>;
   }

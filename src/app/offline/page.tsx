@@ -7,7 +7,7 @@ export default function OfflinePage() {
   return (
     <PageHeader
       title="You are offline"
-      description="Saved icons can still load. Listings, accounts, and payments need a connection. Reopen the page after you are back online."
+      description="Listings, accounts, and payments need a connection. Reopen the page after you are back online."
     />
   );
 }

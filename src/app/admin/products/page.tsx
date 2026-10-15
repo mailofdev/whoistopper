@@ -17,7 +17,7 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
           <option value="">All statuses</option>
           {PRODUCT_STATUSES.map((item) => <option key={item} value={item}>{item.replaceAll("_", " ")}</option>)}
         </select>
-        <button className="ml-2 h-11 rounded-lg bg-brand px-4 text-sm font-semibold text-white" type="submit">Filter</button>
+        <button className="ml-2 h-11 rounded-lg bg-brand px-4 text-sm font-semibold text-on-brand" type="submit">Filter</button>
       </form>
       <div className="grid gap-3">
         {products.map((product) => (
@@ -37,7 +37,7 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
                 {PRODUCT_STATUSES.map((item) => <option key={item} value={item}>{item.replaceAll("_", " ")}</option>)}
               </select>
               <input className="h-11 rounded-lg border border-line px-3" name="reason" placeholder="Reason" aria-label="Reason" />
-              <button className="h-11 rounded-lg bg-brand px-4 text-sm font-semibold text-white" type="submit">Save</button>
+              <button className="h-11 rounded-lg bg-brand px-4 text-sm font-semibold text-on-brand" type="submit">Save</button>
             </form>
           </Card>
         ))}

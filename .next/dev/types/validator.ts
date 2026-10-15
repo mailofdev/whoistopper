@@ -698,6 +698,23 @@ type RouteHandlerConfig<Route extends AppRouteHandlerRoutes = AppRouteHandlerRou
   type __Unused = __Check
 }
 
+// Validate ../../../src/app/payments/checkout/[orderId]/page.tsx
+{
+  type __IsExpected<Specific extends AppPageConfig<"/payments/checkout/[orderId]">> = Specific
+  const handler = {} as typeof import("../../../src/app/payments/checkout/[orderId]/page.js")
+  type __Check = __IsExpected<typeof handler>
+  
+  type __ParamMatchingValue =
+    typeof handler extends { unstable_paramMatching: infer Matcher } ? Matcher :
+    typeof handler extends { unstable_generateParamMatching: (...args: any[]) => infer Matcher } ? Awaited<Matcher> : {}
+  type __InvalidParamMatchingKeys = Exclude<keyof __ParamMatchingValue, keyof ParamMap["/payments/checkout/[orderId]"]>
+  type __AssertNoInvalidParamMatchingKeys<Invalid extends never> = Invalid
+  const __paramMatchingKeyCheck: __AssertNoInvalidParamMatchingKeys<__InvalidParamMatchingKeys> | undefined = undefined
+  void __paramMatchingKeyCheck
+  // @ts-ignore
+  type __Unused = __Check
+}
+
 // Validate ../../../src/app/payments/sandbox/[orderId]/page.tsx
 {
   type __IsExpected<Specific extends AppPageConfig<"/payments/sandbox/[orderId]">> = Specific
@@ -966,6 +983,16 @@ type RouteHandlerConfig<Route extends AppRouteHandlerRoutes = AppRouteHandlerRou
 {
   type __IsExpected<Specific extends RouteHandlerConfig<"/out/[slug]">> = Specific
   const handler = {} as typeof import("../../../src/app/out/[slug]/route.js")
+  type __Check = __IsExpected<typeof handler>
+  
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../../src/app/payments/razorpay/return/route.ts
+{
+  type __IsExpected<Specific extends RouteHandlerConfig<"/payments/razorpay/return">> = Specific
+  const handler = {} as typeof import("../../../src/app/payments/razorpay/return/route.js")
   type __Check = __IsExpected<typeof handler>
   
   // @ts-ignore

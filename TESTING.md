@@ -17,7 +17,7 @@
 - Paid versus free labels on the product card.
 - SQL rank order string matches the engine.
 
-Not automated yet: a real Supabase RLS suite, concurrent SQL bids against Postgres, and the full Playwright signup path. Run those against a staging project before launch. The Playwright spec covers the home page and search in mock mode.
+Not automated yet: a real Supabase RLS suite and concurrent SQL bids against Postgres. Run those against a staging project before launch. The Playwright spec covers the public rank board.
 
 ## Manual checklist
 
@@ -25,5 +25,5 @@ Not automated yet: a real Supabase RLS suite, concurrent SQL bids against Postgr
 - Sign in as an owner, submit a listing, and confirm validation errors.
 - Complete a sandbox success and confirm the receipt shows a final rank.
 - Sign in as an administrator and open moderation.
-- Signed-out visit to `/dashboard` redirects to login.
-- Production build with mock requested still serves Supabase, not mock data.
+- Signed-out visit to `/dashboard` returns to the public board.
+- Production build reads Supabase. There is no local listing store.

@@ -1,6 +1,6 @@
-# Who's Topper
+# RankPush
 
-Who's Topper is an India-first directory for products, websites, and tools. Visitors can browse without an account. Owners can list for free and, after ownership is verified, pay in INR for a labelled position on a leaderboard. A paid rank is the verified bid. It is not a rating or an endorsement.
+RankPush (rankpush.lol) is an India-first directory for products, websites, and tools. Anyone can claim a rank with a product link and a verified INR payment. There is no account. A paid rank is the verified bid. It is not a rating or an endorsement.
 
 ## Development
 
@@ -10,23 +10,9 @@ cp .env.example .env.local
 npm run dev
 ```
 
-Open http://localhost:3000. The committed `.env.local` turns mock data on for local development.
+Open http://localhost:3000. The board stays empty until `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` are set and the migrations are applied. A failed database call shows that message. It does not invent listings.
 
-Development accounts (mock mode only):
-
-| Account | Email | Password |
-| --- | --- | --- |
-| Owner | ananya@example.com | TopperDemo!2026 |
-| Owner | rohan@example.com | TopperDemo!2026 |
-| Owner | kabir@example.com | TopperDemo!2026 |
-| Administrator | meera@example.com | TopperAdmin!2026 |
-| Super administrator | arjun@example.com | TopperSuper!2026 |
-
-## Mock data and real data
-
-`NEXT_PUBLIC_USE_MOCK_DATA=true` uses the in-memory services in development and test. Omit the variable in development and mock data stays on. Set it to `false` to use Supabase.
-
-Production ignores the public flag. `getServices()` always returns the Supabase implementation when `NODE_ENV` is `production`. A failed Supabase call shows an error. It does not fall back to mock data. Mock payment completion is refused in production.
+Outside production, a claim opens a labelled test payment. Production stays unpaid until Razorpay confirms the amount.
 
 ## Commands
 
@@ -41,7 +27,7 @@ Production ignores the public flag. `getServices()` always returns the Supabase 
 
 ## Supabase
 
-Apply `supabase/migrations` in order, then `supabase/seed.sql` for categories. Configure Auth redirect URLs for `/auth/callback` and `/auth/update-password`. Set `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY`. The service role key stays on the server.
+Apply `supabase/migrations` in order, then `supabase/seed.sql` for categories. Configure Auth redirect URLs for `/auth/callback` and `/auth/update-password`. Set `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, and `SUPABASE_SERVICE_ROLE_KEY`. The service role key stays on the server.
 
 ## Payments
 
