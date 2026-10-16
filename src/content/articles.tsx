@@ -3,7 +3,7 @@ import { PageHeader } from "@/components/ui/primitives";
 export const articles = {
   about: {
     title: "About",
-    description: "RankPush is an Indian product directory with transparent paid ranking.",
+    description: "RankPush is a public directory for digital presence, lifestyle, achievements, and creative work, with transparent paid ranking.",
     body: [
       "RankPush helps people discover products, websites, and tools made for Indian users. Listings can be free. A paid position is a separate, labelled bid in INR.",
       "The rank is calculated from the verified amount. It is not a review, a rating, or a community vote.",
@@ -15,7 +15,7 @@ export const articles = {
     body: [
       "Can I list without paying? Yes. Approved free listings appear after paid rows.",
       "Does payment guarantee a rank before the money is confirmed? No. The receipt shows the rank only after the provider payment is verified.",
-      "When does the daily board reset? At 00:00 UTC. A payment confirmed at 23:59:59.999 UTC stays on that UTC date. The next day starts empty.",
+      "When does the daily board reset? At 00:00 IST (Asia/Kolkata). A payment confirmed at 23:59:59.999 IST stays on that date. The next day starts empty.",
       "What wins a tie? The earlier confirmation. If that also matches, the smaller listing id wins.",
     ],
   },
@@ -23,11 +23,11 @@ export const articles = {
     title: "Ranking rules",
     description: "The rules that decide paid positions.",
     body: [
-      "Scopes are all-time, the current UTC day, and each category. A listing can have one active paid placement in each scope.",
+      "Scopes are all-time, the current IST day, and each category. A listing can have one active paid placement in each scope.",
       "Positions sort by amount in paise, descending. Ties break by earlier confirmation time, then by listing id ascending.",
       "The minimum new bid and the minimum increase are platform settings. The default minimum is ₹99 and the default increase is ₹10.",
       "A later smaller payment never lowers an existing bid. If a verified payment cannot improve the placement, it is marked for refund review.",
-      "Daily rows are kept as history. They are excluded from the new UTC day because that day uses a new key.",
+      "Daily rows are kept as history. They are excluded from the new IST day because that day uses a new key. A refund or a lost dispute removes the placement that payment created. Failed and cancelled payments do not change a rank.",
       "Free listings are ordered after every paid row and are labelled Free listing.",
     ],
   },

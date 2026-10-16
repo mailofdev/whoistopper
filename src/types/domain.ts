@@ -36,12 +36,17 @@ export interface Category {
   description: string;
   sortOrder: number;
   isActive: boolean;
+  groupSlug: string;
+  groupName: string;
+  groupSort: number;
+  fieldSet: string;
 }
 
 export interface SocialLinks {
   x?: string;
   linkedin?: string;
   instagram?: string;
+  youtube?: string;
 }
 
 export interface ProductDetail {
@@ -56,6 +61,8 @@ export interface ProductDetail {
   categoryId: string;
   categorySlug: string;
   categoryName: string;
+  categoryFieldSet: string;
+  details: Record<string, string>;
   tags: string[];
   ownerId: string | null;
   ownerUsername: string | null;

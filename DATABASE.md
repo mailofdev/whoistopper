@@ -17,7 +17,9 @@ Migrations in `supabase/migrations` are the schema source of truth. `supabase/se
 
 Active placements use a partial unique index on `(product_id, scope_type, scope_key) where status = 'active'`. `apply_provider_event` takes `pg_advisory_xact_lock` for the scope, checks amount and currency, writes the ledger once, and inserts or updates the placement. The order is `amount_paise desc, confirmed_at asc, product_id asc`.
 
-Daily scope keys are `to_char(now() at time zone 'utc', 'YYYY-MM-DD')` inside order creation, so a client cannot pre-buy tomorrow. `snapshot_daily_board` copies a finished UTC day for history.
+Daily scope keys created for signed-in upgrades are `to_char(now() at time zone 'Asia/Kolkata', 'YYYY-MM-DD')`, so a client cannot pre-buy tomorrow. Guest bids use the same IST date on the server. Older UTC keys stay as history. `snapshot_daily_board` records a finished IST day. Removing or rejecting a listing supersedes its active placements. Payment rows stay.
+
+`listing_manage_tokens` stores a hash of the private edit link. The table is not readable by `anon` or `authenticated`. `products.details` holds category-specific public text. Categories carry `group_slug`, `group_name`, `group_sort`, and `field_set`. Listing images go in the public `listing-media` bucket; uploads use the service role.
 
 ## Row Level Security
 

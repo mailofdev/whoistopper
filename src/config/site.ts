@@ -4,7 +4,7 @@ export const site = {
   shortName: "RankPush",
   domain: "rankpush.lol",
   description:
-    "Public leaderboard for products, websites, and tools. A paid rank is a verified INR bid, labelled as paid placement.",
+    "Public leaderboard for digital presence, lifestyle, achievements, and creative work. A paid rank is a verified INR bid, labelled as paid placement.",
   locale: "en-IN",
   themeColor: "#D4145A",
   backgroundColor: "#FAF7F5",

@@ -48,7 +48,7 @@ async function About() {
       <section className="space-y-3 leading-7 text-secondary">
         <h2 className="text-xl font-semibold text-navy">What you are paying for</h2>
         <p>You can pay to list a product website or an X profile and to occupy a rank based on the amount paid, under the published Rules. Someone else can pay more and move ahead of you.</p>
-        <p>Today&apos;s board only counts spend since midnight UTC. All-time keeps every confirmed bid. Each category has its own board.</p>
+        <p>Today&apos;s board only counts spend since midnight IST. All-time keeps every confirmed bid. Each category has its own board.</p>
       </section>
       {notice ? <Alert>{notice}</Alert> : (
         <section className="grid gap-3 sm:grid-cols-3">
@@ -57,7 +57,7 @@ async function About() {
           <Stat value={highest ? formatInrFromPaise(highest) : "—"} label="highest all-time rank" />
           <Stat value={String(categories)} label="categories" />
           <Stat value="₹99" label="minimum new bid" />
-          <Stat value="00:00 UTC" label="when Today resets" />
+          <Stat value="00:00 IST" label="when Today resets" />
         </section>
       )}
       <section className="space-y-3">
@@ -65,7 +65,7 @@ async function About() {
         <div className="grid gap-3 sm:grid-cols-3">
           <Note title="A rank is a payment" body="The position follows the confirmed amount. It does not mean we checked the product or liked it." />
           <Note title="Someone can outbid you" body="A higher confirmed bid takes the place above you. The rank is not reserved while you are paying." />
-          <Note title="Today starts over" body="The daily board uses the UTC date. Yesterday stays in history and does not carry onto the new day." />
+          <Note title="Today starts over" body="The daily board uses the IST date. Yesterday stays in history and does not carry onto the new day." />
         </div>
       </section>
     </article>

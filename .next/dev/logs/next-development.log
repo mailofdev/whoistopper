@@ -74,3 +74,70 @@
 {"timestamp":"02:02:30.328","source":"Browser","level":"INFO","message":"Download the React DevTools for a better development experience: https://react.dev/link/react-devtools"}
 {"timestamp":"02:02:38.169","source":"Browser","level":"INFO","message":"Download the React DevTools for a better development experience: https://react.dev/link/react-devtools"}
 {"timestamp":"12:30:38.067","source":"Browser","level":"INFO","message":"Download the React DevTools for a better development experience: https://react.dev/link/react-devtools"}
+{"timestamp":"12:50:00.416","source":"Server","level":"LOG","message":"✓ Compiled in 716ms"}
+{"timestamp":"12:50:01.355","source":"Server","level":"ERROR","message":"⨯ ./src/features/leaderboards/claim.ts:4:1\nError: Export istDayKey doesn't exist in target module\n  2 | ...\n  3 | ...connection } from \"next/server\";\n> 4 | ...istDayKey } from \"@/features/leaderboard...\n    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | ...openListingBid } from \"@/features/listin...\n  6 | ...rupeesToPaise } from \"@/lib/money\";\n  7 | ...createSupabaseAdminClient } from \"@/lib/...\n\nThe export istDayKey was not found in module [project]/src/features/leaderboards/engine.ts [app-rsc] (ecmascript).\nDid you mean to import utcDayKey?\nAll exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.\n\n"}
+{"timestamp":"12:50:01.562","source":"Browser","level":"ERROR","message":"Uncaught Error: ./src/features/leaderboards/claim.ts:4:1\nError: Export istDayKey doesn't exist in target module\n  2 | ...\n  3 | ...connection } from \"next/server\";\n> 4 | ...istDayKey } from \"@/features/leaderboard...\n    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | ...openListingBid } from \"@/features/listin...\n  6 | ...rupeesToPaise } from \"@/lib/money\";\n  7 | ...createSupabaseAdminClient } from \"@/lib/...\n\nThe export istDayKey was not found in module [project]/src/features/leaderboards/engine.ts [app-rsc] (ecmascript).\nDid you mean to import utcDayKey?\nAll exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.\n\n"}
+{"timestamp":"12:50:01.562","source":"Server","level":"ERROR","message":"[browser] \"\\u001b[31mUncaught Error: ./src/features/leaderboards/claim.ts:4:1\\nError: Export istDayKey doesn't exist in target module\\n  2 | ...\\n  3 | ...connection } from \\\"next/server\\\";\\n> 4 | ...istDayKey } from \\\"@/features/leaderboard...\\n    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  5 | ...openListingBid } from \\\"@/features/listin...\\n  6 | ...rupeesToPaise } from \\\"@/lib/money\\\";\\n  7 | ...createSupabaseAdminClient } from \\\"@/lib/...\\n\\nThe export istDayKey was not found in module [project]/src/features/leaderboards/engine.ts [app-rsc] (ecmascript).\\nDid you mean to import utcDayKey?\\nAll exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.\\n\\n\\u001b[39m\""}
+{"timestamp":"12:50:14.748","source":"Server","level":"LOG","message":"✓ Compiled in 110ms"}
+{"timestamp":"12:50:15.077","source":"Browser","level":"INFO","message":"Download the React DevTools for a better development experience: https://react.dev/link/react-devtools"}
+{"timestamp":"12:50:37.529","source":"Server","level":"LOG","message":"✓ Compiled in 54ms"}
+{"timestamp":"12:51:36.129","source":"Server","level":"LOG","message":"✓ Compiled in 56ms"}
+{"timestamp":"12:51:36.770","source":"Server","level":"LOG","message":"✓ Compiled in 43ms"}
+{"timestamp":"12:51:39.569","source":"Server","level":"LOG","message":"✓ Compiled in 42ms"}
+{"timestamp":"12:51:40.298","source":"Server","level":"LOG","message":"✓ Compiled in 120ms"}
+{"timestamp":"12:51:43.744","source":"Server","level":"LOG","message":"✓ Compiled in 49ms"}
+{"timestamp":"12:51:44.461","source":"Server","level":"ERROR","message":"{\"level\":\"error\",\"message\":\"supabase request failed\",\"time\":\"2026-10-16T02:34:25.880Z\",\"code\":\"42703\"}"}
+{"timestamp":"12:51:45.026","source":"Server","level":"LOG","message":"✓ Compiled in 40ms"}
+{"timestamp":"12:51:45.156","source":"Server","level":"ERROR","message":"{\"level\":\"error\",\"message\":\"supabase request failed\",\"time\":\"2026-10-16T02:34:26.575Z\",\"code\":\"42703\"}"}
+{"timestamp":"12:51:46.047","source":"Server","level":"LOG","message":"✓ Compiled in 36ms"}
+{"timestamp":"12:51:46.196","source":"Server","level":"ERROR","message":"{\"level\":\"error\",\"message\":\"supabase request failed\",\"time\":\"2026-10-16T02:34:27.615Z\",\"code\":\"42703\"}"}
+{"timestamp":"12:51:46.750","source":"Server","level":"LOG","message":"✓ Compiled in 40ms"}
+{"timestamp":"12:51:46.873","source":"Server","level":"ERROR","message":"{\"level\":\"error\",\"message\":\"supabase request failed\",\"time\":\"2026-10-16T02:34:28.291Z\",\"code\":\"42703\"}"}
+{"timestamp":"12:51:49.776","source":"Server","level":"LOG","message":"✓ Compiled in 46ms"}
+{"timestamp":"12:51:49.876","source":"Server","level":"ERROR","message":"{\"level\":\"error\",\"message\":\"supabase request failed\",\"time\":\"2026-10-16T02:34:31.294Z\",\"code\":\"42703\"}"}
+{"timestamp":"12:52:21.071","source":"Server","level":"LOG","message":"✓ Compiled in 60ms"}
+{"timestamp":"12:52:21.649","source":"Server","level":"ERROR","message":"{\"level\":\"error\",\"message\":\"supabase request failed\",\"time\":\"2026-10-16T02:35:03.068Z\",\"code\":\"42703\"}"}
+{"timestamp":"12:52:21.823","source":"Server","level":"LOG","message":"✓ Compiled in 30ms"}
+{"timestamp":"12:52:21.949","source":"Server","level":"ERROR","message":"{\"level\":\"error\",\"message\":\"supabase request failed\",\"time\":\"2026-10-16T02:35:03.367Z\",\"code\":\"42703\"}"}
+{"timestamp":"12:52:27.905","source":"Server","level":"LOG","message":"✓ Compiled in 43ms"}
+{"timestamp":"12:52:28.555","source":"Server","level":"LOG","message":"✓ Compiled in 94ms"}
+{"timestamp":"12:52:28.631","source":"Server","level":"ERROR","message":"{\"level\":\"error\",\"message\":\"supabase request failed\",\"time\":\"2026-10-16T02:35:10.050Z\",\"code\":\"42703\"}"}
+{"timestamp":"12:52:28.746","source":"Server","level":"ERROR","message":"{\"level\":\"error\",\"message\":\"supabase request failed\",\"time\":\"2026-10-16T02:35:10.165Z\",\"code\":\"42703\"}"}
+{"timestamp":"12:52:28.964","source":"Server","level":"LOG","message":"✓ Compiled in 43ms"}
+{"timestamp":"12:52:29.419","source":"Server","level":"LOG","message":"✓ Compiled in 54ms"}
+{"timestamp":"12:52:29.904","source":"Server","level":"LOG","message":"✓ Compiled in 34ms"}
+{"timestamp":"12:52:30.495","source":"Server","level":"LOG","message":"✓ Compiled in 29ms"}
+{"timestamp":"12:52:31.279","source":"Server","level":"LOG","message":"✓ Compiled in 30ms"}
+{"timestamp":"12:52:40.527","source":"Server","level":"LOG","message":"✓ Compiled in 38ms"}
+{"timestamp":"12:52:41.187","source":"Server","level":"LOG","message":"✓ Compiled in 44ms"}
+{"timestamp":"12:52:41.902","source":"Server","level":"LOG","message":"✓ Compiled in 127ms"}
+{"timestamp":"12:52:44.010","source":"Server","level":"LOG","message":"✓ Compiled in 31ms"}
+{"timestamp":"12:52:46.246","source":"Server","level":"LOG","message":"✓ Compiled in 57ms"}
+{"timestamp":"12:52:47.477","source":"Server","level":"LOG","message":"✓ Compiled in 34ms"}
+{"timestamp":"12:52:48.278","source":"Server","level":"LOG","message":"✓ Compiled in 33ms"}
+{"timestamp":"12:52:49.189","source":"Server","level":"LOG","message":"✓ Compiled in 33ms"}
+{"timestamp":"12:52:51.170","source":"Server","level":"LOG","message":"✓ Compiled in 33ms"}
+{"timestamp":"12:52:55.865","source":"Server","level":"LOG","message":"✓ Compiled in 108ms"}
+{"timestamp":"12:53:00.088","source":"Server","level":"LOG","message":"✓ Compiled in 33ms"}
+{"timestamp":"12:53:02.391","source":"Browser","level":"ERROR","message":"./src/app/categories/page.tsx:82:5\nError: Expected '</', got ')'\n  80 |         </div>\n  81 |       </div>\n> 82 |     );\n     |     ^\n  83 |   } catch (error) {\n  84 |     return <Alert>{toPublicError(error).me...\n  85 |   }\n\nParsing ecmascript source code failed "}
+{"timestamp":"12:53:02.393","source":"Server","level":"ERROR","message":"[browser] \"./src/app/categories/page.tsx:82:5\\nError: Expected '</', got ')'\\n  80 |         </div>\\n  81 |       </div>\\n> 82 |     );\\n     |     ^\\n  83 |   } catch (error) {\\n  84 |     return <Alert>{toPublicError(error).me...\\n  85 |   }\\n\\nParsing ecmascript source code failed\" \"\""}
+{"timestamp":"12:53:02.423","source":"Browser","level":"ERROR","message":"./src/app/categories/page.tsx:82:5\nError: Expected '</', got ')'\n  80 |         </div>\n  81 |       </div>\n> 82 |     );\n     |     ^\n  83 |   } catch (error) {\n  84 |     return <Alert>{toPublicError(error).me...\n  85 |   }\n\nParsing ecmascript source code failed "}
+{"timestamp":"12:53:02.424","source":"Server","level":"ERROR","message":"[browser] \"./src/app/categories/page.tsx:82:5\\nError: Expected '</', got ')'\\n  80 |         </div>\\n  81 |       </div>\\n> 82 |     );\\n     |     ^\\n  83 |   } catch (error) {\\n  84 |     return <Alert>{toPublicError(error).me...\\n  85 |   }\\n\\nParsing ecmascript source code failed\" \"\""}
+{"timestamp":"12:53:02.868","source":"Server","level":"LOG","message":"✓ Compiled in 28ms"}
+{"timestamp":"12:53:03.852","source":"Server","level":"LOG","message":"✓ Compiled in 28ms"}
+{"timestamp":"12:53:55.941","source":"Server","level":"LOG","message":"✓ Compiled in 23ms"}
+{"timestamp":"12:53:56.259","source":"Server","level":"LOG","message":"✓ Compiled in 240ms"}
+{"timestamp":"12:53:56.465","source":"Server","level":"LOG","message":"✓ Compiled in 133ms"}
+{"timestamp":"12:53:57.323","source":"Server","level":"LOG","message":"✓ Compiled in 29ms"}
+{"timestamp":"12:53:57.776","source":"Server","level":"LOG","message":"✓ Compiled in 27ms"}
+{"timestamp":"12:53:58.455","source":"Server","level":"LOG","message":"✓ Compiled in 28ms"}
+{"timestamp":"12:53:58.898","source":"Server","level":"LOG","message":"✓ Compiled in 28ms"}
+{"timestamp":"12:53:59.557","source":"Server","level":"LOG","message":"✓ Compiled in 27ms"}
+{"timestamp":"12:54:00.220","source":"Server","level":"LOG","message":"✓ Compiled in 25ms"}
+{"timestamp":"12:54:00.677","source":"Server","level":"LOG","message":"✓ Compiled in 27ms"}
+{"timestamp":"12:54:01.546","source":"Server","level":"LOG","message":"✓ Compiled in 31ms"}
+{"timestamp":"12:57:36.191","source":"Server","level":"ERROR","message":"{\"level\":\"error\",\"message\":\"supabase request failed\",\"time\":\"2026-10-16T02:40:17.611Z\",\"code\":\"42703\"}"}
+{"timestamp":"12:57:37.259","source":"Server","level":"LOG","message":"✓ Compiled in 54ms"}
+{"timestamp":"12:57:38.946","source":"Server","level":"ERROR","message":"{\"level\":\"error\",\"message\":\"supabase request failed\",\"time\":\"2026-10-16T02:40:20.366Z\",\"code\":\"42703\"}"}
+{"timestamp":"12:57:43.580","source":"Server","level":"LOG","message":"✓ Compiled in 36ms"}
+{"timestamp":"12:58:25.282","source":"Browser","level":"INFO","message":"Download the React DevTools for a better development experience: https://react.dev/link/react-devtools"}

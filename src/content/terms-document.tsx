@@ -19,7 +19,7 @@ const sections: Array<{ title: string; paragraphs: string[] }> = [
     title: "What the Service is",
     paragraphs: [
       `${site.domain} is a paid public ranking. You may pay to list a product website or an X profile and to occupy a rank based on the amount paid, according to the Rules. Listings are paid advertisements, not editorial reviews, certifications, endorsements, or independent rankings.`,
-      "A payment buys a chance to appear on the board at the rank that amount can take at the time it is fulfilled. It does not buy traffic, clicks, customers, revenue, exclusive placement, a fixed duration at a specific rank, search-engine ranking, or any particular result. Someone else can pay more and outrank you. Today's board only counts spend since midnight UTC on the current calendar day. We may change, pause, or discontinue features, including categories and ranking formulas.",
+      "A payment buys a chance to appear on the board at the rank that amount can take at the time it is fulfilled. It does not buy traffic, clicks, customers, revenue, exclusive placement, a fixed duration at a specific rank, search-engine ranking, or any particular result. Someone else can pay more and outrank you. Today's board only counts spend since midnight IST (Asia/Kolkata) on the current calendar day. We may change, pause, or discontinue features, including categories and ranking formulas.",
     ],
   },
   {
@@ -38,7 +38,7 @@ const sections: Array<{ title: string; paragraphs: string[] }> = [
   {
     title: "No refunds",
     paragraphs: [
-      "A payment that is applied to a rank is final and not refundable. Ranking placement is a digital service that begins as soon as payment is confirmed: the listing is created or the rank is raised, and the paid amount is counted on the public board. Being outranked later, a drop on Today's board at midnight UTC, fewer clicks than you hoped for, a category you dislike, downtime, or a later removal for breach of these Terms does not create a refund.",
+      "A payment that is applied to a rank is final and not refundable. Ranking placement is a digital service that begins as soon as payment is confirmed: the listing is created or the rank is raised, and the paid amount is counted on the public board. Being outranked later, a drop on Today's board at midnight IST, fewer clicks than you hoped for, a category you dislike, downtime, or a later removal for breach of these Terms does not create a refund.",
       "If a verified payment cannot be applied because it does not improve the active bid, the order is marked for refund review. That case is described on the Refunds page. Contact us with the receipt id.",
       "By completing checkout you request that we start this digital service immediately and acknowledge that you lose any statutory right of withdrawal or cooling-off period to the extent that law allows that waiver. Where a mandatory consumer right cannot be waived, we honor that right. Chargebacks, payment disputes, or reversed payments without a legally required basis are a breach of these Terms; we may remove the listing and refuse future use of the Service.",
     ],

@@ -5,7 +5,7 @@
 - `src/app` — App Router pages, route handlers, metadata, sitemap, and robots.
 - `src/components/ui` — buttons, forms, cards, badges, pagination.
 - `src/components/layout` — header, footer, mobile menu, and offline status. PWA install is not active.
-- `src/features` — auth, products, leaderboard rules, payments, admin, profiles, ownership.
+- `src/features` — auth, products, public listings, leaderboard rules, payments, admin, profiles, ownership. Daily boards use the IST date.
 - `src/lib` — money, URLs, validation, security, logging, Supabase clients, and the service entry point.
 - `src/config` — site copy and environment parsing.
 - `supabase/migrations` — schema, RLS, and ranking/payment functions.

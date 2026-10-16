@@ -166,10 +166,22 @@ export function Pagination({
 }) {
   const pages = Math.max(1, Math.ceil(total / pageSize));
   if (pages <= 1) return null;
+  const start = Math.max(1, Math.min(page - 2, pages - 4));
+  const numbers = Array.from({ length: Math.min(5, pages) }, (_, index) => start + index).filter((number) => number >= 1 && number <= pages);
   return (
-    <nav aria-label="Pagination" className="mt-6 flex items-center justify-between text-sm">
+    <nav aria-label="Pagination" className="mt-6 flex flex-wrap items-center justify-between gap-3 text-sm">
       {page > 1 ? <Link className="font-semibold text-brand" href={hrefFor(page - 1)}>Previous</Link> : <span />}
-      <span className="text-secondary">Page {page} of {pages}</span>
+      <ol className="flex flex-wrap items-center gap-2">
+        {numbers.map((number) => (
+          <li key={number}>
+            {number === page ? (
+              <span aria-current="page" className="inline-flex h-9 min-w-9 items-center justify-center rounded-full bg-brand px-2 font-semibold text-on-brand">{number}</span>
+            ) : (
+              <Link className="inline-flex h-9 min-w-9 items-center justify-center rounded-full px-2 text-navy hover:bg-muted" href={hrefFor(number)}>{number}</Link>
+            )}
+          </li>
+        ))}
+      </ol>
       {page < pages ? <Link className="font-semibold text-brand" href={hrefFor(page + 1)}>Next</Link> : <span />}
     </nav>
   );

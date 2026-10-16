@@ -17,6 +17,36 @@
       },
       "filename": "src/features/leaderboards/claim.ts",
       "exportedName": "claimRankAction"
+    },
+    "609cf9e525d1e559f04679c6ee7efc45ad7e276af2": {
+      "workers": {
+        "app/products/[slug]/page": {
+          "moduleId": "[project]/.next-internal/server/app/products/[slug]/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/products/[slug]/page.tsx [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/features/products/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false
+        }
+      },
+      "filename": "src/app/products/[slug]/page.tsx",
+      "exportedName": "$$RSC_SERVER_ACTION_0"
+    },
+    "40db769ac8aa6a63beffa95f8bd75475cf0df344cb": {
+      "workers": {
+        "app/products/[slug]/page": {
+          "moduleId": "[project]/.next-internal/server/app/products/[slug]/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/products/[slug]/page.tsx [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/features/products/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false
+        }
+      },
+      "filename": "src/features/products/actions.ts",
+      "exportedName": "reportAction"
+    },
+    "609d2d663e6a0e358e7257e8875de7c007ae42d837": {
+      "workers": {
+        "app/products/[slug]/page": {
+          "moduleId": "[project]/.next-internal/server/app/products/[slug]/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/products/[slug]/page.tsx [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/features/products/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false
+        }
+      },
+      "filename": "src/features/products/actions.ts",
+      "exportedName": "saveProductAction"
     }
   },
   "edge": {},

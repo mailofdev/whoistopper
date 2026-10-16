@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { connection } from "next/server";
 import { ProductCard } from "@/components/products/product-card";
 import { Alert, EmptyState, PageHeader, Skeleton } from "@/components/ui/primitives";
 import { toPublicError } from "@/lib/errors";
@@ -13,6 +14,7 @@ export default function Page() {
 
 async function List() {
   try {
+    await connection();
     const items = await getServices().products.listTrending(12);
     return (
       <>

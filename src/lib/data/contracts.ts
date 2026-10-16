@@ -36,8 +36,9 @@ import type {
 export interface AppServices {
   categories: {
     list(): Promise<Category[]>;
+    listAll(): Promise<Category[]>;
     getBySlug(slug: string): Promise<Category | null>;
-    save(actor: SessionUser, input: { id?: string; slug: string; name: string; description: string; sortOrder: number; isActive: boolean }): Promise<void>;
+    save(actor: SessionUser, input: { id?: string; slug: string; name: string; description: string; sortOrder: number; isActive: boolean; groupSlug: string; groupName: string; groupSort: number; fieldSet: string }): Promise<void>;
   };
   products: {
     search(query: ProductQuery): Promise<PageResult<ProductCardModel>>;
@@ -52,7 +53,7 @@ export interface AppServices {
     setStatus(actor: SessionUser, productId: string, status: ProductStatus, reason?: string): Promise<void>;
   };
   leaderboards: {
-    get(scope: LeaderboardScope, page: number, pageSize: number): Promise<LeaderboardPage>;
+    get(scope: LeaderboardScope, page: number, pageSize: number, options?: { query?: string; categoryId?: string }): Promise<LeaderboardPage>;
     preview(user: SessionUser, productId: string, scope: ScopeType, amountPaise: number, now?: Date): Promise<UpgradePreview>;
   };
   payments: {

@@ -49,12 +49,18 @@ async function CategoryList() {
             </div>
           </section>
         ) : null}
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {boards.map((board) => (
+        {[...new Map(boards.map((board) => [board.category.groupSlug, board.category.groupName])).entries()]
+          .sort((a, b) => (boards.find((board) => board.category.groupSlug === a[0])?.category.groupSort ?? 0) - (boards.find((board) => board.category.groupSlug === b[0])?.category.groupSort ?? 0))
+          .map(([groupSlug, groupName]) => (
+          <section key={groupSlug} className="space-y-3">
+            <h2 className="text-lg font-semibold">{groupName}</h2>
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {boards.filter((board) => board.category.groupSlug === groupSlug).map((board) => (
             <section key={board.category.id} className="glass rounded-3xl p-4">
-              <h2 className="font-semibold">
+              <h3 className="font-semibold">
                 <Link className="hover:text-brand" href={`/categories/${board.category.slug}`}>{board.category.name}</Link>
-              </h2>
+              </h3>
+              <p className="mt-1 text-sm text-secondary">{board.category.description}</p>
               {board.paid.length === 0 ? (
                 <p className="mt-4 text-sm text-secondary">No paid ranks yet.</p>
               ) : (
@@ -71,7 +77,9 @@ async function CategoryList() {
               )}
             </section>
           ))}
-        </div>
+            </div>
+          </section>
+        ))}
       </div>
     );
   } catch (error) {

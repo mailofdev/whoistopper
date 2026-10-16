@@ -22,11 +22,28 @@ export interface RankedPlacement extends Placement {
 }
 
 /**
- * Daily leaderboards use the UTC calendar date.
- * A confirmation at 2026-10-15T23:59:59.999Z belongs to 2026-10-15.
- * A confirmation at 2026-10-16T00:00:00.000Z belongs to 2026-10-16.
+ * Daily leaderboards use the Asia/Kolkata calendar date.
+ * 2026-10-15T18:29:59.999Z is still 2026-10-15 IST.
+ * 2026-10-15T18:30:00.000Z is 2026-10-16 IST.
  * Yesterday's rows stay in history and are excluded by scope key, not deleted.
  */
+export function istDayKey(date: Date): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Kolkata",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(date);
+}
+
+export function shiftIstDay(date: Date, days: number): string {
+  const [year, month, day] = istDayKey(date).split("-").map(Number);
+  const anchor = new Date(Date.UTC(year, month - 1, day, 6, 30));
+  anchor.setUTCDate(anchor.getUTCDate() + days);
+  return istDayKey(anchor);
+}
+
+/** UTC day key kept for analytics buckets. Ranking boards use istDayKey. */
 export function utcDayKey(date: Date): string {
   return date.toISOString().slice(0, 10);
 }

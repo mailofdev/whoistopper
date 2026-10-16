@@ -9,6 +9,7 @@
   "/payments/checkout/[orderId]/page": "app/payments/checkout/[orderId]/page.js",
   "/payments/razorpay/return/route": "app/payments/razorpay/return/route.js",
   "/privacy/page": "app/privacy/page.js",
+  "/products/[slug]/page": "app/products/[slug]/page.js",
   "/refunds/page": "app/refunds/page.js",
   "/rules/page": "app/rules/page.js",
   "/search/page": "app/search/page.js",

@@ -8,6 +8,12 @@ import { getServices } from "@/lib/services";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
+  try {
+    const category = await getServices().categories.getBySlug(slug);
+    if (category) return pageMetadata(`${category.name} leaderboard`, category.description, `/categories/${category.slug}`);
+  } catch {
+    // Metadata falls back when the directory is unavailable.
+  }
   return pageMetadata(`${slug} leaderboard`, "Category leaderboard with paid placement labelled separately from free listings.", `/categories/${slug}`);
 }
 
@@ -36,7 +42,7 @@ async function CategoryBoard({
     const { slug } = await params;
     const category = await getServices().categories.getBySlug(slug);
     if (!category) notFound();
-    return <Board scope={{ type: "category", key: category.id }} period="all_time" categorySlug={slug} searchParams={searchParams} />;
+    return <Board scope={{ type: "category", key: category.id }} period="all_time" categorySlug={slug} path={`/categories/${slug}`} searchParams={searchParams} />;
   } catch (error) {
     return <Alert>{toPublicError(error).message}</Alert>;
   }

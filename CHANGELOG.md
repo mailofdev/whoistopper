@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Public submissions cover grouped categories for digital presence, lifestyle, achievements, and creative work. A private manage link is stored only as a hash. Today's board uses midnight IST. Apply `supabase/migrations/20261016120000_presence_boards.sql` before using the new columns.
 - Public brand is RankPush at rankpush.lol. Ownership checks look for `/.well-known/rankpush.txt`.
 - PWA install, the web manifest, and service worker registration are turned off until a later phase.
 

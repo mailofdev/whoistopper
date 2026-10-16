@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { ListingMark, listingHost, listingWhen } from "@/components/leaderboard/listing-meta";
+import { Pagination } from "@/components/ui/primitives";
 import { claimRankAction } from "@/features/leaderboards/claim";
 import { formatInrFromPaise } from "@/lib/money";
 import { site } from "@/config/site";
@@ -17,6 +18,11 @@ export function PublicBoard({
   category,
   bidding,
   notice,
+  page = 1,
+  pageSize = 20,
+  total = 0,
+  query = "",
+  path = "/",
 }: {
   entries: LeaderboardEntry[];
   today?: LeaderboardEntry[];
@@ -25,10 +31,15 @@ export function PublicBoard({
   category?: string;
   bidding: "all_time" | "daily" | "category";
   notice?: string;
+  page?: number;
+  pageSize?: number;
+  total?: number;
+  query?: string;
+  path?: string;
 }) {
   const router = useRouter();
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const visible = scope === "daily" && category ? entries.filter((entry) => entry.categorySlug === category) : entries;
+  const visible = entries;
   const top = visible.find((entry) => entry.placement === "paid" && entry.amountPaise);
   const opening = top?.amountPaise ? Math.floor(top.amountPaise / 100) + 1 : 99;
   const [amount, setAmount] = useState(opening);
@@ -76,7 +87,23 @@ export function PublicBoard({
   return (
     <div className="min-w-0 space-y-5">
       <h1 className="sr-only">Rankings</h1>
-      <CategoryRail scope={scope} category={category} categories={categories} />
+      <CategoryRail scope={scope} category={category} categories={categories} query={query} />
+      <form className="flex gap-2" action={path} method="get">
+        {category && !path.startsWith("/categories/") ? <input type="hidden" name="category" value={category} /> : null}
+        <input
+          name="q"
+          defaultValue={query}
+          aria-label="Search this board"
+          placeholder="Search this board"
+          className="glass-field h-11 min-w-0 flex-1 rounded-full px-4 text-sm text-navy"
+        />
+        <select name="pageSize" defaultValue={String(pageSize)} aria-label="Listings per page" className="glass-field h-11 rounded-full px-3 text-sm text-navy">
+          <option value="12">12</option>
+          <option value="20">20</option>
+          <option value="48">48</option>
+        </select>
+        <button className="h-11 rounded-full bg-brand px-4 text-sm font-semibold text-on-brand" type="submit">Search board</button>
+      </form>
       <div className="flex justify-center">
         <div className="glass inline-flex gap-1 rounded-full p-1 text-sm" role="tablist" aria-label="Ranking period">
           <Tab href={category ? `/?category=${category}` : "/"} selected={scope === "all_time"}>All-time</Tab>
@@ -155,8 +182,11 @@ export function PublicBoard({
             ))}
           </ol>
           {visible.length === 0 ? (
-            <p className="glass rounded-3xl px-4 py-10 text-center text-sm leading-6 text-secondary">No paid ranks on this board yet. Claim the first one with a product link. A rank is the amount paid, not a review.</p>
+            <p className="glass rounded-3xl px-4 py-10 text-center text-sm leading-6 text-secondary">
+              {query ? "No listings match that search on this page of the board." : "No paid ranks on this board yet. Claim the first one with a public link. A rank is the amount paid, not a review."}
+            </p>
           ) : null}
+          <Pagination page={page} total={total} pageSize={pageSize} hrefFor={(next) => boardHref(path, { category, query, pageSize, page: next })} />
         </div>
         {scope === "all_time" ? <TodayRail entries={today} /> : null}
       </div>
@@ -245,6 +275,10 @@ function ListingRow({ entry, onTake }: { entry: LeaderboardEntry; onTake: (rupee
           {host ? <><Sep />{host}</> : null}
           {entry.clicks > 0 ? <><Sep />{new Intl.NumberFormat("en-IN").format(entry.clicks)} clicks</> : null}
           <Sep />
+          <span>{entry.placement === "paid" ? "Paid · payment confirmed" : "Free listing"}</span>
+          <Sep />
+          <span>{entry.ownershipVerified ? "Ownership verified" : "Ownership not verified"}</span>
+          <Sep />
           <Link href={`/products/${entry.slug}`}>see details</Link>
         </p>
       </div>
@@ -271,7 +305,7 @@ function TodayRail({ entries }: { entries: LeaderboardEntry[] }) {
         <h2 className="text-sm font-semibold">Today&apos;s ranking</h2>
         <Link href="/leaderboard/today" className="text-sm text-secondary hover:text-navy">see all</Link>
       </div>
-      {paid.length === 0 ? <p className="mt-4 text-sm text-secondary">No paid ranks yet today. The daily board starts empty at midnight UTC.</p> : (
+      {paid.length === 0 ? <p className="mt-4 text-sm text-secondary">No paid ranks yet today. The daily board starts empty at midnight IST.</p> : (
         <ol className="mt-3 space-y-3">
           {paid.slice(0, 9).map((entry) => (
             <li key={entry.id} className="flex items-center gap-2 text-sm">
@@ -295,14 +329,26 @@ function Step({ label, disabled, onClick, children }: { label: string; disabled?
   );
 }
 
+function boardHref(path: string, input: { category?: string; query?: string; pageSize: number; page: number }) {
+  const params = new URLSearchParams();
+  if (input.category && !path.startsWith("/categories/")) params.set("category", input.category);
+  if (input.query) params.set("q", input.query);
+  if (input.pageSize !== 20) params.set("pageSize", String(input.pageSize));
+  if (input.page > 1) params.set("page", String(input.page));
+  const query = params.toString();
+  return query ? `${path}?${query}` : path;
+}
+
 function CategoryRail({
   scope,
   category,
   categories,
+  query,
 }: {
   scope: "all_time" | "daily";
   category?: string;
   categories: Category[];
+  query?: string;
 }) {
   const scroller = useRef<HTMLDivElement>(null);
   const [canPrev, setCanPrev] = useState(false);
@@ -348,9 +394,9 @@ function CategoryRail({
     <div className="flex items-center gap-2">
       {canPrev ? <RailButton label="Previous categories" direction="prev" onClick={() => scroll(-1)} /> : null}
       <div ref={scroller} className="glass flex min-w-0 flex-1 gap-1 overflow-x-auto rounded-full p-1 text-sm [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <Filter href={scope === "daily" ? "/leaderboard/today" : "/"} active={!category}>All</Filter>
+        <Filter href={boardHref(scope === "daily" ? "/leaderboard/today" : "/", { query, pageSize: 20, page: 1 })} active={!category}>All</Filter>
         {categories.map((item) => (
-          <Filter key={item.id} href={scope === "daily" ? `/leaderboard/today?category=${item.slug}` : `/?category=${item.slug}`} active={category === item.slug}>
+          <Filter key={item.id} href={boardHref(scope === "daily" ? "/leaderboard/today" : "/", { category: item.slug, query, pageSize: 20, page: 1 })} active={category === item.slug}>
             {item.name}
           </Filter>
         ))}

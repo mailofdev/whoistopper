@@ -32,17 +32,18 @@ export async function POST(request: Request) {
 
 function mapRazorpay(body: unknown, headerId: string | null): ProviderEventInput | null {
   if (!body || typeof body !== "object") return null;
-  const record = body as { event?: string; payload?: { payment?: { entity?: Record<string, unknown> }; refund?: { entity?: Record<string, unknown> } } };
+  const record = body as { event?: string; payload?: { payment?: { entity?: Record<string, unknown> }; refund?: { entity?: Record<string, unknown> }; dispute?: { entity?: Record<string, unknown> } } };
   const name = record.event ?? "";
   const payment = record.payload?.payment?.entity;
   const refund = record.payload?.refund?.entity;
-  const entity = name.startsWith("refund") ? refund : payment;
+  const dispute = record.payload?.dispute?.entity;
+  const entity = name.startsWith("refund") ? refund : payment ?? dispute;
   if (!entity) return null;
   const type = name === "payment.captured" || name === "order.paid"
     ? "payment.captured"
     : name === "payment.failed"
       ? "payment.failed"
-      : name === "refund.processed"
+      : name === "refund.processed" || name === "payment.dispute.lost"
         ? "refund.processed"
         : null;
   if (!type) return null;

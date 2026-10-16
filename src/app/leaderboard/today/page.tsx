@@ -6,7 +6,7 @@ import { pageMetadata } from "@/lib/metadata";
 
 export const metadata = pageMetadata(
   "Today's leaderboard",
-  "Daily paid positions reset at 00:00 UTC. Yesterday's bids stay in history and do not carry over.",
+  "Daily paid positions reset at 00:00 IST. Yesterday's bids stay in history and do not carry over.",
   "/leaderboard/today",
 );
 
@@ -22,5 +22,5 @@ async function TodayBoard({ searchParams }: { searchParams: Promise<Record<strin
   await connection();
   const params = await searchParams;
   const category = typeof params.category === "string" ? params.category : undefined;
-  return <Board scope={todayScope()} period="daily" categorySlug={category} searchParams={searchParams} />;
+  return <Board scope={todayScope()} period="daily" categorySlug={category} path="/leaderboard/today" searchParams={searchParams} />;
 }

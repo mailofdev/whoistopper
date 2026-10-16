@@ -4,6 +4,7 @@ import { reportAction } from "@/features/products/actions";
 import { toPublicError } from "@/lib/errors";
 import { headers } from "next/headers";
 import { after } from "next/server";
+import { fieldsFor } from "@/config/catalogue";
 import { formatInrFromPaise } from "@/lib/money";
 import { pageMetadata } from "@/lib/metadata";
 import { getServices } from "@/lib/services";
@@ -41,12 +42,12 @@ async function ProductDetail({ params }: { params: Promise<{ slug: string }> }) 
     });
     const jsonLd = {
       "@context": "https://schema.org",
-      "@type": "SoftwareApplication",
+      "@type": "Thing",
       name: product.name,
       description: product.shortDescription,
       url: product.websiteUrl,
-      applicationCategory: product.categoryName,
     };
+    const detailFields = fieldsFor(product.categoryFieldSet);
     return (
       <>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
@@ -55,15 +56,31 @@ async function ProductDetail({ params }: { params: Promise<{ slug: string }> }) 
           <article>
             <PageHeader eyebrow={product.categoryName} title={product.name} description={product.shortDescription} />
             <p className="whitespace-pre-wrap text-sm leading-7 text-secondary">{product.fullDescription}</p>
-            <p className="mt-4 text-sm">By {product.ownerUsername ? <a className="font-semibold text-brand" href={`/u/${product.ownerUsername}`}>{product.ownerDisplayName}</a> : product.creatorName}</p>
+            <p className="mt-4 text-sm">Submitted by {product.ownerUsername ? <a className="font-semibold text-brand" href={`/u/${product.ownerUsername}`}>{product.ownerDisplayName}</a> : product.creatorName}. A name here is not an ownership check.</p>
+            {detailFields.some((field) => product.details[field.key]) ? (
+              <>
+              <p className="mt-6 text-sm text-secondary">These details were submitted with the listing. They are not checked facts.</p>
+              <dl className="mt-3 space-y-3 text-sm">
+                {detailFields.filter((field) => product.details[field.key]).map((field) => (
+                  <div key={field.key}>
+                    <dt className="font-medium">{field.label}</dt>
+                    <dd className="text-secondary">
+                      {field.kind === "url" ? <a className="text-brand underline" href={product.details[field.key]} rel="noopener noreferrer" target="_blank">{product.details[field.key]}</a> : product.details[field.key]}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+              </>
+            ) : null}
           </article>
           <Card>
             <h2 className="text-lg font-semibold">Placement</h2>
             <p className="mt-2 text-sm text-secondary">Paid rank is the verified bid. It is not a rating or an endorsement.</p>
             <dl className="mt-4 space-y-2 text-sm">
               <div className="flex justify-between"><dt>All-time</dt><dd>{product.allTimeRank ? `#${product.allTimeRank} · ${formatInrFromPaise(product.allTimeAmountPaise ?? 0)}` : "Free listing"}</dd></div>
-              <div className="flex justify-between"><dt>Today (UTC)</dt><dd>{product.todayRank ? `#${product.todayRank} · ${formatInrFromPaise(product.todayAmountPaise ?? 0)}` : "No daily bid"}</dd></div>
-              <div className="flex justify-between"><dt>Owner</dt><dd>{product.ownershipVerified ? "Verified" : "Unverified"}</dd></div>
+              <div className="flex justify-between gap-3"><dt>Today (IST)</dt><dd>{product.todayRank ? `#${product.todayRank} · ${formatInrFromPaise(product.todayAmountPaise ?? 0)}` : "No daily bid"}</dd></div>
+              <div className="flex justify-between gap-3"><dt>Payment</dt><dd>{product.allTimeAmountPaise || product.todayAmountPaise ? "Confirmed bid" : "No confirmed bid"}</dd></div>
+              <div className="flex justify-between gap-3"><dt>Ownership</dt><dd>{product.ownershipVerified ? "Verified" : "Not verified"}</dd></div>
             </dl>
             <a className="mt-5 inline-flex h-11 w-full items-center justify-center rounded-lg bg-brand text-sm font-semibold text-on-brand" href={`/out/${product.slug}`} target="_blank" rel="noopener noreferrer">Visit website</a>
           </Card>

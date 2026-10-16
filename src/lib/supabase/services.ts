@@ -1,5 +1,6 @@
 import { lookup } from "node:dns/promises";
-import { assignRanks, utcDayKey } from "@/features/leaderboards/engine";
+import { FIELD_SETS } from "@/config/catalogue";
+import { assignRanks, istDayKey, utcDayKey } from "@/features/leaderboards/engine";
 import { openGatewayOrder } from "@/features/payments/gateway";
 import { findReconciliationIssues } from "@/features/payments/reconcile";
 import { resolvePaymentRuntime } from "@/features/payments/runtime";
@@ -87,9 +88,35 @@ async function replaceTags(productId: string, tags: string[]) {
   }
 }
 
-function categoryOf(value: { slug?: string; name?: string } | { slug?: string; name?: string }[] | null) {
+function categoryOf(value: { slug?: string; name?: string; field_set?: string } | { slug?: string; name?: string; field_set?: string }[] | null) {
   const row = Array.isArray(value) ? value[0] : value;
-  return { slug: row?.slug ?? "", name: row?.name ?? "Uncategorised" };
+  return { slug: row?.slug ?? "", name: row?.name ?? "Uncategorised", fieldSet: row?.field_set ?? "website" };
+}
+
+function mapCategory(row: { id: string; slug: string; name: string; description: string; sort_order: number; is_active: boolean; group_slug?: string | null; group_name?: string | null; group_sort?: number | null; field_set?: string | null }) {
+  return {
+    id: row.id,
+    slug: row.slug,
+    name: row.name,
+    description: row.description,
+    sortOrder: row.sort_order,
+    isActive: row.is_active,
+    groupSlug: row.group_slug ?? "digital-presence",
+    groupName: row.group_name ?? "Digital Presence",
+    groupSort: row.group_sort ?? 1,
+    fieldSet: row.field_set ?? "website",
+  };
+}
+
+function detailsOf(value: unknown): Record<string, string> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  const details: Record<string, string> = {};
+  for (const [key, item] of Object.entries(value)) {
+    if (!/^[a-z0-9_]{1,40}$/.test(key) || typeof item !== "string") continue;
+    const trimmed = item.trim();
+    if (trimmed) details[key] = trimmed.slice(0, 500);
+  }
+  return details;
 }
 
 function relatedName(value: unknown, fallback = "Listing"): string {
@@ -147,6 +174,8 @@ function detailFrom(row: Record<string, unknown>): ProductDetail {
     categoryId: String(row.category_id),
     categorySlug: category.slug,
     categoryName: category.name,
+    categoryFieldSet: category.fieldSet,
+    details: detailsOf(row.details),
     ownerId: (row.owner_id as string | null) ?? null,
     ownerUsername: (row.owner_username as string | null) ?? null,
     ownerDisplayName: (row.owner_display_name as string | null) ?? null,
@@ -163,11 +192,11 @@ function detailFrom(row: Record<string, unknown>): ProductDetail {
   };
 }
 
-const productSelect = "id, slug, name, website_url, normalized_url, short_description, full_description, logo_url, category_id, owner_id, owner_username, owner_display_name, creator_name, social_links, status, rejection_reason, ownership_verified, created_at, updated_at, approved_at, categories(slug, name), product_tags(tags(slug))";
+const productSelect = "id, slug, name, website_url, normalized_url, short_description, full_description, logo_url, category_id, owner_id, owner_username, owner_display_name, creator_name, social_links, details, status, rejection_reason, ownership_verified, created_at, updated_at, approved_at, categories(slug, name, field_set), product_tags(tags(slug))";
 
 async function withRanks(detail: ProductDetail): Promise<ProductDetail> {
   const client = await anon();
-  const today = utcDayKey(new Date());
+  const today = istDayKey(new Date());
   for (const scope of [
     { type: "all_time" as const, key: "all_time", rank: "allTimeRank" as const, amount: "allTimeAmountPaise" as const },
     { type: "daily" as const, key: today, rank: "todayRank" as const, amount: "todayAmountPaise" as const },
@@ -228,9 +257,15 @@ export const supabaseServices: AppServices = {
   categories: {
     async list() {
       const client = await anon();
-      const { data, error } = await client.from("categories").select("id, slug, name, description, sort_order, is_active").eq("is_active", true).order("sort_order");
+      const { data, error } = await client.from("categories").select("id, slug, name, description, sort_order, is_active, group_slug, group_name, group_sort, field_set").eq("is_active", true).order("group_sort").order("sort_order");
       fail(error);
-      return (data ?? []).map((row) => ({ id: row.id, slug: row.slug, name: row.name, description: row.description, sortOrder: row.sort_order, isActive: row.is_active }));
+      return (data ?? []).map((row) => mapCategory(row));
+    },
+    async listAll() {
+      const client = await server();
+      const { data, error } = await client.from("categories").select("id, slug, name, description, sort_order, is_active, group_slug, group_name, group_sort, field_set").order("group_sort").order("sort_order");
+      fail(error);
+      return (data ?? []).map((row) => mapCategory(row));
     },
     async getBySlug(slug) {
       const categories = await supabaseServices.categories.list();
@@ -239,10 +274,21 @@ export const supabaseServices: AppServices = {
     async save(actor, input) {
       if (!canModerate(actor)) throw new AppError("You cannot edit categories.", "forbidden", 403);
       const client = await server();
-      const payload = { slug: slugify(input.slug), name: input.name, description: input.description, sort_order: input.sortOrder, is_active: input.isActive };
+      const payload = {
+        slug: slugify(input.slug),
+        name: input.name,
+        description: input.description,
+        sort_order: input.sortOrder,
+        is_active: input.isActive,
+        group_slug: slugify(input.groupSlug),
+        group_name: input.groupName,
+        group_sort: input.groupSort,
+        field_set: FIELD_SETS[input.fieldSet] ? input.fieldSet : "website",
+      };
       const query = input.id ? client.from("categories").update(payload).eq("id", input.id) : client.from("categories").insert(payload);
       const { error } = await query;
       fail(error);
+      await client.from("admin_audit_logs").insert({ actor_id: actor.id, action: "category.save", entity_type: "category", entity_id: input.id ?? input.slug });
     },
   },
   products: {
@@ -391,17 +437,26 @@ export const supabaseServices: AppServices = {
         approved_at: status === "approved" ? new Date().toISOString() : undefined,
       }).eq("id", productId);
       fail(error);
+      if (status === "removed" || status === "suspended" || status === "rejected") {
+        try {
+          await admin().from("ranking_placements").update({ status: "superseded" }).eq("product_id", productId).eq("status", "active");
+        } catch (retireError) {
+          log("error", "placement.retire", { error: retireError instanceof Error ? retireError.message : "unknown" });
+        }
+      }
       await client.from("admin_audit_logs").insert({ actor_id: actor.id, action: `product.${status}`, entity_type: "product", entity_id: productId });
     },
   },
   leaderboards: {
-    async get(scope: LeaderboardScope, page, pageSize) {
+    async get(scope: LeaderboardScope, page, pageSize, options) {
       const client = await anon();
       const { data, error } = await client.rpc("get_leaderboard", {
         p_scope_type: scope.type,
         p_scope_key: scope.key,
         p_limit: pageSize,
         p_offset: (page - 1) * pageSize,
+        p_query: options?.query ?? "",
+        p_category_id: options?.categoryId ?? null,
       });
       fail(error);
       const payload = data as { total: number; paidCount: number; entries: Array<Record<string, unknown>> };
@@ -446,7 +501,7 @@ export const supabaseServices: AppServices = {
       return {
         scope,
         title,
-        description: "Paid positions are ordered by the verified amount in INR. An earlier confirmation wins a tie, then the smaller listing id. Paid placement is not a quality score. Free listings follow paid rows. Daily boards use the UTC date and start empty at 00:00 UTC.",
+        description: "Paid positions are ordered by the verified amount in INR. An earlier confirmation wins a tie, then the smaller listing id. Paid placement is not a quality score or an ownership check. Free listings follow paid rows. Daily boards use the Asia/Kolkata date and start empty at 00:00 IST.",
         entries,
         page,
         pageSize,
@@ -459,7 +514,7 @@ export const supabaseServices: AppServices = {
       if (!product || !canUpgradeProduct(user, product)) throw new AppError("Verify ownership of an approved listing before ranking it.", "forbidden", 403);
       const { minimumAmountForTarget, previewRank } = await import("@/features/leaderboards/engine");
       const client = await anon();
-      const key = scope === "daily" ? utcDayKey(new Date()) : scope === "category" ? product.categoryId : "all_time";
+      const key = scope === "daily" ? istDayKey(new Date()) : scope === "category" ? product.categoryId : "all_time";
       const { data } = await client.from("ranking_placements").select("id, product_id, amount_paise, confirmed_at").eq("scope_type", scope).eq("scope_key", key).eq("status", "active");
       const placements = (data ?? []).map((row) => ({ id: row.id, productId: row.product_id, amountPaise: row.amount_paise, confirmedAt: row.confirmed_at }));
       const rules = await settingsFrom(client);

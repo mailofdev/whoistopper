@@ -39,7 +39,7 @@ export function UpgradeForm({ productId }: { productId: string }) {
       <Field label="Board" error={form.formState.errors.scope?.message}>
         <SelectInput {...form.register("scope")}>
           <option value="all_time">All-time</option>
-          <option value="daily">Today (UTC)</option>
+          <option value="daily">Today (IST)</option>
           <option value="category">This category</option>
         </SelectInput>
       </Field>

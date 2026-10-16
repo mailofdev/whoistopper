@@ -77,6 +77,10 @@ export async function saveCategoryAction(input: {
   description: string;
   sortOrder: number;
   isActive: boolean;
+  groupSlug: string;
+  groupName: string;
+  groupSort: number;
+  fieldSet: string;
 }) {
   try {
     const actor = await requireAdmin();

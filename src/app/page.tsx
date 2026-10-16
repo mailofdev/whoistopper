@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { connection } from "next/server";
 import { Board } from "@/app/leaderboard/page";
 import { Skeleton } from "@/components/ui/primitives";
-import { utcDayKey } from "@/features/leaderboards/engine";
+import { istDayKey } from "@/features/leaderboards/engine";
 import { getServices } from "@/lib/services";
 import type { LeaderboardScope } from "@/types/domain";
 
@@ -20,7 +20,7 @@ async function HomeBoard({ searchParams }: { searchParams: Promise<Record<string
   const category = typeof params.category === "string" ? params.category : undefined;
   const daily = params.scope === "today";
   let scope: LeaderboardScope = daily
-    ? { type: "daily", key: utcDayKey(new Date()) }
+    ? { type: "daily", key: istDayKey(new Date()) }
     : { type: "all_time", key: "all_time" };
   if (category && !daily) {
     try {
@@ -30,5 +30,5 @@ async function HomeBoard({ searchParams }: { searchParams: Promise<Record<string
       scope = { type: "all_time", key: "all_time" };
     }
   }
-  return <Board scope={scope} categorySlug={category} period={daily ? "daily" : "all_time"} searchParams={searchParams} />;
+  return <Board scope={scope} categorySlug={category} period={daily ? "daily" : "all_time"} path="/" searchParams={searchParams} />;
 }

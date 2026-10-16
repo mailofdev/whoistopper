@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { utcDayKey } from "@/features/leaderboards/engine";
+import { shiftIstDay } from "@/features/leaderboards/engine";
 import { log } from "@/lib/logging/logger";
 import { getServices } from "@/lib/services";
 
@@ -8,7 +8,7 @@ export async function POST(request: Request) {
   if (!secret || request.headers.get("authorization") !== `Bearer ${secret}`) {
     return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
   }
-  const day = utcDayKey(new Date(Date.now() - 24 * 60 * 60 * 1000));
+  const day = shiftIstDay(new Date(), -1);
   try {
     await getServices().admin.snapshotDaily(day);
     return NextResponse.json({ ok: true, day });

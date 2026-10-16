@@ -1,9 +1,8 @@
 "use server";
 
 import { connection } from "next/server";
-import { utcDayKey } from "@/features/leaderboards/engine";
-import { openGatewayOrder } from "@/features/payments/gateway";
-import { resolvePaymentRuntime } from "@/features/payments/runtime";
+import { istDayKey } from "@/features/leaderboards/engine";
+import { openListingBid } from "@/features/listings/bids";
 import { rupeesToPaise } from "@/lib/money";
 import { createSupabaseAdminClient } from "@/lib/supabase/clients";
 import { normalizeWebsiteUrl, slugify } from "@/lib/urls";
@@ -37,17 +36,12 @@ export async function claimRankAction(input: {
   if (!admin) {
     return { ok: false, error: "The directory database is not connected, so this rank cannot be saved yet." };
   }
-  const runtime = resolvePaymentRuntime();
-  if (runtime.mode === "unconfigured") {
-    return { ok: false, error: "Payments are not configured, so a rank cannot be purchased yet." };
-  }
-
   const host = new URL(normalized).hostname.replace(/^www\./, "");
   const listing = await admin.from("categories").select("id").eq("slug", input.category).eq("is_active", true).maybeSingle();
   if (!listing.data) return { ok: false, error: "Choose a category." };
   const categoryId = listing.data.id;
   let scopeType: "all_time" | "daily" | "category" = input.scope;
-  let scopeKey = input.scope === "daily" ? utcDayKey(new Date()) : "all_time";
+  let scopeKey = input.scope === "daily" ? istDayKey(new Date()) : "all_time";
   const boardSlug = input.boardCategory?.trim();
   if (boardSlug) {
     const board = await admin.from("categories").select("id").eq("slug", boardSlug).eq("is_active", true).maybeSingle();
@@ -86,36 +80,9 @@ export async function claimRankAction(input: {
     return { ok: false, error: "Raise this product by at least ₹10 above its current amount. A smaller payment does not lower a rank." };
   }
 
-  const created = await admin.from("payment_orders").insert({
-    user_id: null,
-    product_id: productId,
-    provider: runtime.mode === "live" ? "razorpay" : "sandbox",
-    amount_paise: amountPaise,
-    currency: "INR",
-    purpose: "ranking_upgrade",
-    scope_type: scopeType,
-    scope_key: scopeKey,
-    status: "pending",
-    fulfillment: "pending",
-    idempotency_key: crypto.randomUUID(),
-  }).select("id").single();
-  if (created.error || !created.data) {
-    return { ok: false, error: "Could not open the payment. Apply the latest database migration so a rank can be claimed without an account." };
+  const opened = await openListingBid({ productId, amountPaise, scopeType, scopeKey });
+  if (!opened.ok) {
+    return { ok: false, error: opened.error === "Could not open the payment." ? "Could not open the payment. Apply the latest database migration so a rank can be claimed without an account." : opened.error };
   }
-
-  try {
-    const gateway = await openGatewayOrder({
-      receipt: created.data.id,
-      amountPaise,
-      notes: { productId, scope: scopeType },
-    });
-    await admin.from("payment_orders").update({ provider: gateway.provider, provider_order_id: gateway.providerOrderId }).eq("id", created.data.id);
-  } catch {
-    return { ok: false, error: "The payment provider did not open this order." };
-  }
-
-  return {
-    ok: true,
-    href: runtime.mode === "sandbox" ? `/payments/sandbox/${created.data.id}` : `/payments/checkout/${created.data.id}`,
-  };
+  return { ok: true, href: opened.href };
 }
