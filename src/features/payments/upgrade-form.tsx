@@ -43,7 +43,7 @@ export function UpgradeForm({ productId }: { productId: string }) {
           <option value="category">This category</option>
         </SelectInput>
       </Field>
-      <Field label="Amount (INR)" hint="Minimum new bids start at the published floor. Existing bids must increase by at least the published step." error={form.formState.errors.amountRupees?.message}>
+      <Field label="Amount (INR)" hint="New ranks start at ₹99. Raising a rank must increase the amount by at least ₹10." error={form.formState.errors.amountRupees?.message}>
         <TextInput type="number" min={1} step="1" {...form.register("amountRupees", { valueAsNumber: true })} />
       </Field>
       <div className="flex gap-3">

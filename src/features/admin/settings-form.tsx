@@ -16,9 +16,9 @@ export function SettingsForm({ defaults }: { defaults: PlatformSettings }) {
       setMessage(result.ok ? "Settings saved." : result.error);
     })}>
       {message ? <Alert tone={message === "Settings saved." ? "success" : "error"}>{message}</Alert> : null}
-      <Field label="Minimum bid (paise)"><TextInput type="number" {...form.register("minimumBidPaise", { valueAsNumber: true })} /></Field>
+      <Field label="Minimum rank amount (paise)"><TextInput type="number" {...form.register("minimumBidPaise", { valueAsNumber: true })} /></Field>
       <Field label="Minimum increase (paise)"><TextInput type="number" {...form.register("minimumIncrementPaise", { valueAsNumber: true })} /></Field>
-      <Field label="Maximum bid (paise)"><TextInput type="number" {...form.register("maxBidPaise", { valueAsNumber: true })} /></Field>
+      <Field label="Maximum rank amount (paise)"><TextInput type="number" {...form.register("maxBidPaise", { valueAsNumber: true })} /></Field>
       <Field label="Sponsored week (paise)"><TextInput type="number" {...form.register("sponsoredWeeklyPricePaise", { valueAsNumber: true })} /></Field>
       <Field label="Sponsored slots"><TextInput type="number" {...form.register("sponsoredMaxActive", { valueAsNumber: true })} /></Field>
       <label className="flex items-center gap-2 text-sm sm:col-span-2"><input type="checkbox" {...form.register("holdNewListingsForReview")} /> Hold new listings for review</label>

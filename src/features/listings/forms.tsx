@@ -96,12 +96,12 @@ export function ListingForm({ categories }: { categories: Category[] }) {
         <legend className="text-sm font-medium">Placement</legend>
         <div className="mt-2 flex flex-wrap gap-4 text-sm">
           <label className="flex items-center gap-2"><input type="radio" name="placement" value="free" checked={placement === "free"} onChange={() => setPlacement("free")} /> Free listing</label>
-          <label className="flex items-center gap-2"><input type="radio" name="placement" value="paid" checked={placement === "paid"} onChange={() => setPlacement("paid")} /> Paid bid from ₹99</label>
+          <label className="flex items-center gap-2"><input type="radio" name="placement" value="paid" checked={placement === "paid"} onChange={() => setPlacement("paid")} /> Paid rank from ₹99</label>
         </div>
       </fieldset>
       {placement === "paid" ? (
         <div className="grid gap-3 sm:grid-cols-2">
-          <Field label="Bid in rupees" hint="The server checks this amount. A later bid must be higher.">
+          <Field label="Rank amount in rupees" hint="Whole rupees. Raising a rank must be at least ₹10 above the current amount.">
             <TextInput name="amountRupees" inputMode="numeric" defaultValue="99" required />
           </Field>
           <Field label="Board">

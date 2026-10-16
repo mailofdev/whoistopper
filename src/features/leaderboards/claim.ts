@@ -30,7 +30,7 @@ export async function claimRankAction(input: {
   }
   const amountPaise = rupeesToPaise(input.amountRupees);
   if (!Number.isInteger(amountPaise) || amountPaise < 9900 || amountPaise > 100_000_000) {
-    return { ok: false, error: "Enter an amount from ₹99 to ₹10,00,000. A matching amount ranks below the earlier payment, so add at least ₹1 to move above a listed rank." };
+    return { ok: false, error: "Enter an amount from ₹99 to ₹10,00,000. The same amount ranks below the earlier payment, so add at least ₹1 to place above a listed rank." };
   }
   const admin = createSupabaseAdminClient();
   if (!admin) {
@@ -77,7 +77,7 @@ export async function claimRankAction(input: {
     .eq("status", "active")
     .maybeSingle();
   if (current.data && amountPaise < Number(current.data.amount_paise) + 1000) {
-    return { ok: false, error: "Raise this product by at least ₹10 above its current amount. A smaller payment does not lower a rank." };
+    return { ok: false, error: "Raise this rank by at least ₹10 above its current amount. A smaller payment does not lower a rank." };
   }
 
   const opened = await openListingBid({ productId, amountPaise, scopeType, scopeKey });

@@ -7,7 +7,7 @@ import { getServices } from "@/lib/services";
 
 export const metadata = pageMetadata(
   "Submit a listing",
-  "List a website, profile, collection, or creative work. Browsing and submitting do not require an account. Paid bids start at ₹99.",
+  "List a website, profile, collection, or creative work. Browsing and submitting do not require an account. Paid ranks start at ₹99.",
   "/submit",
 );
 
@@ -27,7 +27,7 @@ async function SubmitForm() {
       <>
         <PageHeader
           title="Submit a listing"
-          description="No account is required. You get a private link to edit or remove the listing. A free listing waits for review when moderation is on. A paid bid is applied only after the payment provider confirms it."
+          description="No account is required. You get a private link to edit or remove the listing. A free listing waits for review when moderation is on. A paid rank is applied only after the payment is confirmed."
         />
         <ListingForm categories={categories} />
       </>

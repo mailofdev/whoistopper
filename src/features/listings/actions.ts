@@ -89,7 +89,7 @@ export async function submitListingAction(formData: FormData): Promise<ListingRe
       if (text(formData, "termsAccepted") !== "on") return { ok: false, error: "Confirm the Terms of Service before paying." };
       amountPaise = rupeesToPaise(Number(text(formData, "amountRupees")));
       if (!Number.isInteger(amountPaise) || amountPaise < 9900 || amountPaise > 100_000_000) {
-        return { ok: false, error: "Enter a bid from ₹99 to ₹10,00,000." };
+        return { ok: false, error: "Enter an amount from ₹99 to ₹10,00,000." };
       }
       const chosen = text(formData, "scope");
       scope = chosen === "daily" ? "daily" : chosen === "category" ? "category" : "all_time";
@@ -132,7 +132,7 @@ export async function submitListingAction(formData: FormData): Promise<ListingRe
       const scopeKey = scope === "daily" ? istDayKey(new Date()) : scope === "category" ? category.data.id : "all_time";
       const current = await admin.from("ranking_placements").select("amount_paise").eq("product_id", inserted.data.id).eq("scope_type", scope).eq("scope_key", scopeKey).eq("status", "active").maybeSingle();
       if (current.data && amountPaise < Number(current.data.amount_paise) + 1000) {
-        warning = "The listing is saved. Raise the bid by at least ₹10 above the current amount before paying.";
+        warning = "The listing is saved. Raise the amount by at least ₹10 above the current rank before paying.";
       } else {
         const bid = await openListingBid({ productId: inserted.data.id, amountPaise, scopeType: scope, scopeKey });
         if (!bid.ok) warning = `The listing is saved. ${bid.error}`;

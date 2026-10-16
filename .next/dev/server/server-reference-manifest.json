@@ -47,6 +47,56 @@
       },
       "filename": "src/features/products/actions.ts",
       "exportedName": "saveProductAction"
+    },
+    "40fd9f2eb022adc540fcaa6add1337a99b9815dbc3": {
+      "workers": {
+        "app/submit/page": {
+          "moduleId": "[project]/.next-internal/server/app/submit/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/listings/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false
+        }
+      },
+      "filename": "src/features/listings/actions.ts",
+      "exportedName": "updateManagedListingAction"
+    },
+    "40f6a203bc8675d517a9161a811713be97154c1abd": {
+      "workers": {
+        "app/submit/page": {
+          "moduleId": "[project]/.next-internal/server/app/submit/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/listings/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false
+        }
+      },
+      "filename": "src/features/listings/actions.ts",
+      "exportedName": "submitListingAction"
+    },
+    "40f91ff8e1d12f0a96d140a1b41400245feaebbb72": {
+      "workers": {
+        "app/submit/page": {
+          "moduleId": "[project]/.next-internal/server/app/submit/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/listings/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false
+        }
+      },
+      "filename": "src/features/listings/actions.ts",
+      "exportedName": "rotateManageLinkAction"
+    },
+    "40b63c506f25c3fa6d5bd9625cc31cee8f8d98e3a8": {
+      "workers": {
+        "app/submit/page": {
+          "moduleId": "[project]/.next-internal/server/app/submit/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/listings/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false
+        }
+      },
+      "filename": "src/features/listings/actions.ts",
+      "exportedName": "revokeManageLinkAction"
+    },
+    "40d39eee8a5ea77e9356b7b675602cfd8b5aa1fe04": {
+      "workers": {
+        "app/submit/page": {
+          "moduleId": "[project]/.next-internal/server/app/submit/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/listings/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false
+        }
+      },
+      "filename": "src/features/listings/actions.ts",
+      "exportedName": "removeManagedListingAction"
     }
   },
   "edge": {},

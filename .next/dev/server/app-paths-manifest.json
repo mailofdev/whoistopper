@@ -13,5 +13,6 @@
   "/refunds/page": "app/refunds/page.js",
   "/rules/page": "app/rules/page.js",
   "/search/page": "app/search/page.js",
+  "/submit/page": "app/submit/page.js",
   "/terms/page": "app/terms/page.js"
 }

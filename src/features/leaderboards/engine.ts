@@ -94,10 +94,10 @@ export function applyVerifiedBid(input: {
   rules: RankingRules;
 }): { placements: RankedPlacement[]; rank: number; applied: boolean } {
   if (!Number.isInteger(input.bid.amountPaise)) {
-    throw new Error("Bid amount must be an integer number of paise.");
+    throw new Error("Rank amount must be an integer number of paise.");
   }
   if (input.bid.amountPaise > input.rules.maxBidPaise) {
-    throw new Error("Bid amount exceeds the platform maximum.");
+    throw new Error("Rank amount exceeds the platform maximum.");
   }
   const floor = minimumAmountForTarget({
     placements: input.placements,
@@ -105,7 +105,7 @@ export function applyVerifiedBid(input: {
     rules: input.rules,
   });
   if (input.bid.amountPaise < floor) {
-    throw new Error("Bid amount is below the minimum for this listing.");
+    throw new Error("Rank amount is below the minimum for this listing.");
   }
   const existing = input.placements.find((placement) => placement.productId === input.bid.productId);
   if (existing && existing.amountPaise >= input.bid.amountPaise) {

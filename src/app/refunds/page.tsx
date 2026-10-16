@@ -1,9 +1,12 @@
-import { Article } from "@/content/articles";
+import { RefundsDocument } from "@/content/refunds-document";
 import { pageMetadata } from "@/lib/metadata";
-import { articles } from "@/content/articles";
 
-export const metadata = pageMetadata(articles.refunds.title, articles.refunds.description, "/refunds");
+export const metadata = pageMetadata(
+  "Refunds",
+  "When a RankPush ranking payment is final, and when an unapplied payment is refunded through Razorpay.",
+  "/refunds",
+);
 
 export default function Page() {
-  return <Article slug="refunds" />;
+  return <RefundsDocument />;
 }

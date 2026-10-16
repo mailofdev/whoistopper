@@ -1,9 +1,12 @@
-import { Article } from "@/content/articles";
+import { PrivacyDocument } from "@/content/privacy-document";
 import { pageMetadata } from "@/lib/metadata";
-import { articles } from "@/content/articles";
 
-export const metadata = pageMetadata(articles.privacy.title, articles.privacy.description, "/privacy");
+export const metadata = pageMetadata(
+  "Privacy Policy",
+  "How RankPush, as a data fiduciary in India, handles listing data, payments, and account information.",
+  "/privacy",
+);
 
 export default function Page() {
-  return <Article slug="privacy" />;
+  return <PrivacyDocument />;
 }

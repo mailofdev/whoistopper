@@ -222,7 +222,7 @@ export function PublicBoard({
             </div>
           </div>
           <p className="mt-4 text-sm leading-6 text-secondary">
-            A listing at that rank goes on the public board. It goes live when payment confirms. Someone else can claim a higher rank. If this product already has a lower bid on this board, checkout charges only the extra amount needed to reach this bid.
+            The amount is the rank. It is charged in full when payment confirms, and the listing goes on this board. If this listing is already here, the new amount must be at least ₹10 higher and it replaces the previous amount. Someone else can pay more and place above you. This is a paid ranking, not an auction.
           </p>
           <label className="mt-4 flex items-start gap-3 rounded-2xl border border-line px-3 py-3 text-sm leading-6">
             <input
@@ -283,7 +283,7 @@ function ListingRow({ entry, onTake }: { entry: LeaderboardEntry; onTake: (rupee
         </p>
       </div>
       {entry.placement === "paid" && entry.amountPaise ? (
-        <button type="button" className="shrink-0 pt-1 text-sm font-semibold text-brand" aria-label={`Set bid to ${formatInrFromPaise(next * 100)} to move above this rank`} onClick={() => onTake(next)}>
+        <button type="button" className="shrink-0 pt-1 text-sm font-semibold text-brand" aria-label={`Set the rank amount to ${formatInrFromPaise(next * 100)} to place above this rank`} onClick={() => onTake(next)}>
           {formatInrFromPaise(entry.amountPaise)}
         </button>
       ) : (

@@ -25,7 +25,7 @@ export default async function DashboardPage() {
                 <p className="text-sm text-secondary">{product.status.replaceAll("_", " ")} · {product.ownershipVerified ? "Ownership verified" : "Ownership pending"}</p>
               </div>
               <div className="text-sm">
-                {product.allTimeRank ? <Badge tone="paid">All-time #{product.allTimeRank} · {formatInrFromPaise(product.allTimeAmountPaise ?? 0)}</Badge> : <Badge tone="free">No all-time bid</Badge>}
+                {product.allTimeRank ? <Badge tone="paid">All-time #{product.allTimeRank} · {formatInrFromPaise(product.allTimeAmountPaise ?? 0)}</Badge> : <Badge tone="free">No all-time rank</Badge>}
               </div>
             </div>
           </Card>

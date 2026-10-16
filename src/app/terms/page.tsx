@@ -3,7 +3,7 @@ import { pageMetadata } from "@/lib/metadata";
 
 export const metadata = pageMetadata(
   "Terms of Service",
-  "Terms for browsing RankPush, claiming a paid rank, and completing checkout.",
+  "Terms for using RankPush. A paid rank is an advertisement priced in INR, not an auction.",
   "/terms",
 );
 

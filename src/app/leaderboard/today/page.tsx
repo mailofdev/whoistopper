@@ -6,7 +6,7 @@ import { pageMetadata } from "@/lib/metadata";
 
 export const metadata = pageMetadata(
   "Today's leaderboard",
-  "Daily paid positions reset at 00:00 IST. Yesterday's bids stay in history and do not carry over.",
+  "Today's paid ranks reset at 00:00 IST. Yesterday's amounts stay in history and do not carry over.",
   "/leaderboard/today",
 );
 

@@ -1,9 +1,12 @@
-import { Article } from "@/content/articles";
+import { FaqDocument } from "@/content/faq-document";
 import { pageMetadata } from "@/lib/metadata";
-import { articles } from "@/content/articles";
 
-export const metadata = pageMetadata(articles.faq.title, articles.faq.description, "/faq");
+export const metadata = pageMetadata(
+  "FAQ",
+  "Common questions about RankPush: what a rank costs, which board it buys, what you can list, and when a payment is refunded.",
+  "/faq",
+);
 
 export default function Page() {
-  return <Article slug="faq" />;
+  return <FaqDocument />;
 }
