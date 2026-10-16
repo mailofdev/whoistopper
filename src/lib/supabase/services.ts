@@ -419,7 +419,28 @@ export const supabaseServices: AppServices = {
         ownershipVerified: Boolean(entry.ownership_verified),
         approvedAt: (entry.approved_at as string | null) ?? null,
         confirmedAt: (entry.confirmed_at as string | null) ?? null,
+        websiteUrl: "",
+        logoUrl: null,
+        clicks: 0,
       }));
+      if (entries.length > 0) {
+        const ids = entries.map((entry) => entry.id);
+        const [products, analytics] = await Promise.all([
+          client.from("products").select("id, website_url, logo_url").in("id", ids),
+          client.from("analytics_daily").select("product_id, clicks").in("product_id", ids),
+        ]);
+        const sites = new Map((products.data ?? []).map((row) => [row.id, row]));
+        const clicks = new Map<string, number>();
+        for (const row of analytics.data ?? []) {
+          clicks.set(row.product_id, (clicks.get(row.product_id) ?? 0) + Number(row.clicks));
+        }
+        for (const entry of entries) {
+          const site = sites.get(entry.id);
+          if (site?.website_url) entry.websiteUrl = site.website_url;
+          entry.logoUrl = site?.logo_url ?? null;
+          entry.clicks = clicks.get(entry.id) ?? 0;
+        }
+      }
       const category = scope.type === "category" ? (await supabaseServices.categories.list()).find((item) => item.id === scope.key) : null;
       const title = scope.type === "all_time" ? "All-time leaderboard" : scope.type === "daily" ? "Today's leaderboard" : `${category?.name ?? "Category"} leaderboard`;
       return {

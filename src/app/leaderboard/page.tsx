@@ -40,18 +40,37 @@ export async function Board({
 }) {
   await searchParams;
   let entries: LeaderboardEntry[] = [];
+  let today: LeaderboardEntry[] = [];
   let categories: Category[] = [];
   let notice: string | undefined;
   try {
     const services = getServices();
     categories = (await services.categories.list()).filter((category) => category.isActive);
     entries = (await services.leaderboards.get(scope, 1, 48)).entries;
+    if (period === "all_time") {
+      try {
+        today = (await services.leaderboards.get(todayScope(), 1, 9)).entries;
+      } catch {
+        today = [];
+      }
+    }
   } catch (error) {
     notice = error instanceof ConfigurationError
       ? "The directory is not connected to a database yet, so the board is empty. A rank is saved only after a verified payment."
       : toPublicError(error).message;
   }
-  return <PublicBoard entries={entries} categories={categories} scope={period} category={categorySlug} notice={notice} />;
+  return (
+    <PublicBoard
+      key={`${scope.type}:${scope.key}:${categorySlug ?? ""}`}
+      entries={entries}
+      today={today}
+      categories={categories}
+      scope={period}
+      category={categorySlug}
+      bidding={scope.type}
+      notice={notice}
+    />
+  );
 }
 
 export function todayScope(): LeaderboardScope {

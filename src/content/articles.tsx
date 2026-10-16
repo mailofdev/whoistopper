@@ -32,12 +32,12 @@ export const articles = {
     ],
   },
   terms: {
-    title: "Terms",
-    description: "Terms for using RankPush.",
+    title: "Terms of Service",
+    description: "Terms for browsing RankPush, claiming a paid rank, and completing checkout.",
     body: [
-      "You may browse public listings without an account. Submitting a listing means you have the right to describe that product and that the website is safe to visit.",
-      "Paid placement buys a position under the published ranking rules. It does not buy an endorsement, a review, or a promise of sales.",
-      "We may reject, suspend, or remove listings that impersonate someone, host malware, or break applicable Indian law.",
+      "The full terms are published on the Terms page. Checkout requires a confirmation that you have read and agree to them.",
+      "A paid rank is an advertisement. It is not a review, an endorsement, or a promise of traffic.",
+      "You must be at least 18, and you may only list a destination you are allowed to represent.",
     ],
   },
   privacy: {
@@ -54,10 +54,10 @@ export const articles = {
     title: "Refunds",
     description: "When a ranking payment can be refunded.",
     body: [
-      "A verified payment that cannot be applied because a higher bid is already active is marked needs refund. Contact support with the receipt id.",
-      "Refunds follow the payment provider's process. RankPush does not store card numbers.",
-      "A completed rank is not reversed only because the listing later receives fewer clicks. A provider refund event removes the placement that the refunded order created.",
-      "Sandbox and mock payments are not real charges and cannot be refunded by a bank.",
+      "A payment that is applied to a rank is final. Being outranked, a midnight reset of Today's board, or fewer clicks than you hoped for is not a refund.",
+      "If a verified payment cannot be applied because it does not improve the active bid, the order is marked needs refund. Contact support with the receipt id. Where a mandatory consumer right cannot be waived, that right still applies.",
+      "Live checkout is processed by Razorpay. RankPush does not store card numbers. A provider refund event removes the placement that the refunded order created.",
+      "Sandbox payments are not real charges and cannot be refunded by a bank.",
     ],
   },
 } as const;

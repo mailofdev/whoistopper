@@ -12,9 +12,14 @@ export async function claimRankAction(input: {
   website: string;
   amountRupees: number;
   scope: "all_time" | "daily";
-  category?: string;
+  category: string;
+  boardCategory?: string;
+  termsAccepted: boolean;
 }): Promise<{ ok: true; href: string } | { ok: false; error: string }> {
   await connection();
+  if (input.termsAccepted !== true) {
+    return { ok: false, error: "Confirm that you have read and agree to the Terms of Service." };
+  }
   const raw = input.website.trim();
   const handle = raw.startsWith("@") ? raw.slice(1).replace(/[^a-zA-Z0-9_]/g, "") : "";
   const website = handle ? `https://x.com/${handle}` : raw;
@@ -38,19 +43,17 @@ export async function claimRankAction(input: {
   }
 
   const host = new URL(normalized).hostname.replace(/^www\./, "");
-  let categoryId = "";
+  const listing = await admin.from("categories").select("id").eq("slug", input.category).eq("is_active", true).maybeSingle();
+  if (!listing.data) return { ok: false, error: "Choose a category." };
+  const categoryId = listing.data.id;
   let scopeType: "all_time" | "daily" | "category" = input.scope;
   let scopeKey = input.scope === "daily" ? utcDayKey(new Date()) : "all_time";
-  if (input.category) {
-    const category = await admin.from("categories").select("id").eq("slug", input.category).eq("is_active", true).maybeSingle();
-    if (!category.data) return { ok: false, error: "That category is not available." };
-    categoryId = category.data.id;
+  const boardSlug = input.boardCategory?.trim();
+  if (boardSlug) {
+    const board = await admin.from("categories").select("id").eq("slug", boardSlug).eq("is_active", true).maybeSingle();
+    if (!board.data) return { ok: false, error: "That category is not available." };
     scopeType = "category";
-    scopeKey = categoryId;
-  } else {
-    const category = await admin.from("categories").select("id").eq("is_active", true).order("sort_order").limit(1).maybeSingle();
-    if (!category.data) return { ok: false, error: "Add a category before claiming a rank." };
-    categoryId = category.data.id;
+    scopeKey = board.data.id;
   }
 
   const existing = await admin.from("products").select("id").eq("normalized_url", normalized).maybeSingle();

@@ -22,7 +22,7 @@ async function HomeBoard({ searchParams }: { searchParams: Promise<Record<string
   let scope: LeaderboardScope = daily
     ? { type: "daily", key: utcDayKey(new Date()) }
     : { type: "all_time", key: "all_time" };
-  if (category) {
+  if (category && !daily) {
     try {
       const match = await getServices().categories.getBySlug(category);
       if (match) scope = { type: "category", key: match.id };

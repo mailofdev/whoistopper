@@ -1,9 +1,12 @@
-import { Article } from "@/content/articles";
+import { TermsDocument } from "@/content/terms-document";
 import { pageMetadata } from "@/lib/metadata";
-import { articles } from "@/content/articles";
 
-export const metadata = pageMetadata(articles.terms.title, articles.terms.description, "/terms");
+export const metadata = pageMetadata(
+  "Terms of Service",
+  "Terms for browsing RankPush, claiming a paid rank, and completing checkout.",
+  "/terms",
+);
 
 export default function Page() {
-  return <Article slug="terms" />;
+  return <TermsDocument />;
 }

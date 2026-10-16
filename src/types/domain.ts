@@ -96,6 +96,9 @@ export type LeaderboardScope =
 
 export interface LeaderboardEntry extends ProductCardModel {
   confirmedAt: string | null;
+  websiteUrl: string;
+  logoUrl: string | null;
+  clicks: number;
 }
 
 export interface LeaderboardPage {

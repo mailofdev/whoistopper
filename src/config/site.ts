@@ -7,7 +7,7 @@ export const site = {
     "Public leaderboard for products, websites, and tools. A paid rank is a verified INR bid, labelled as paid placement.",
   locale: "en-IN",
   themeColor: "#D4145A",
-  backgroundColor: "#FFF6F8",
+  backgroundColor: "#FAF7F5",
   verificationFile: "rankpush.txt",
 } as const;
 
