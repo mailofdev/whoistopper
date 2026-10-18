@@ -153,6 +153,27 @@ export function Skeleton({ className }: { className?: string }) {
   return <div className={cn("glass animate-pulse rounded-3xl", className)} />;
 }
 
+function pageWindow(page: number, pages: number): Array<number | "gap"> {
+  if (pages <= 6) return Array.from({ length: pages }, (_, index) => index + 1);
+  if (page <= 4) return [1, 2, 3, 4, "gap", pages];
+  if (page >= pages - 3) return [1, "gap", pages - 3, pages - 2, pages - 1, pages];
+  return [1, "gap", page - 1, page, page + 1, "gap", pages];
+}
+
+function PageChevron({ direction }: { direction: "left" | "right" }) {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path
+        d={direction === "left" ? "M10 3.5 5.5 8 10 12.5" : "M6 3.5 10.5 8 6 12.5"}
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 export function Pagination({
   page,
   total,
@@ -165,24 +186,51 @@ export function Pagination({
   hrefFor: (page: number) => string;
 }) {
   const pages = Math.max(1, Math.ceil(total / pageSize));
-  if (pages <= 1) return null;
-  const start = Math.max(1, Math.min(page - 2, pages - 4));
-  const numbers = Array.from({ length: Math.min(5, pages) }, (_, index) => start + index).filter((number) => number >= 1 && number <= pages);
+  if (pages <= 1 || total <= 0) return null;
+  const current = Math.min(Math.max(page, 1), pages);
+  const from = (current - 1) * pageSize + 1;
+  const to = Math.min(current * pageSize, total);
+  const range = `${from.toLocaleString("en-IN")} - ${to.toLocaleString("en-IN")} of ${total.toLocaleString("en-IN")}`;
   return (
-    <nav aria-label="Pagination" className="mt-6 flex flex-wrap items-center justify-between gap-3 text-sm">
-      {page > 1 ? <Link className="font-semibold text-brand" href={hrefFor(page - 1)}>Previous</Link> : <span />}
-      <ol className="flex flex-wrap items-center gap-2">
-        {numbers.map((number) => (
-          <li key={number}>
-            {number === page ? (
-              <span aria-current="page" className="inline-flex h-9 min-w-9 items-center justify-center rounded-full bg-brand px-2 font-semibold text-on-brand">{number}</span>
+    <nav aria-label="Pagination" className="mt-8 flex flex-col items-center gap-3">
+      <ol className="flex items-center gap-3 text-[15px] sm:gap-5">
+        <li>
+          {current > 1 ? (
+            <Link href={hrefFor(current - 1)} aria-label="Previous page" className="inline-flex size-8 items-center justify-center text-secondary hover:text-navy">
+              <PageChevron direction="left" />
+            </Link>
+          ) : (
+            <span aria-hidden="true" className="inline-flex size-8 items-center justify-center text-secondary/35">
+              <PageChevron direction="left" />
+            </span>
+          )}
+        </li>
+        {pageWindow(current, pages).map((item, index) => (
+          <li key={item === "gap" ? `gap-${index}` : item}>
+            {item === "gap" ? (
+              <span aria-hidden="true" className="inline-flex min-w-8 items-center justify-center px-1 tracking-widest text-secondary">...</span>
+            ) : item === current ? (
+              <span aria-current="page" className="inline-flex size-9 items-center justify-center rounded-full bg-brand text-sm font-medium text-on-brand">{item}</span>
             ) : (
-              <Link className="inline-flex h-9 min-w-9 items-center justify-center rounded-full px-2 text-navy hover:bg-muted" href={hrefFor(number)}>{number}</Link>
+              <Link href={hrefFor(item)} aria-label={`Page ${item}`} className="inline-flex min-w-8 items-center justify-center px-1.5 font-medium text-brand hover:text-brand-hover">
+                {item}
+              </Link>
             )}
           </li>
         ))}
+        <li>
+          {current < pages ? (
+            <Link href={hrefFor(current + 1)} aria-label="Next page" className="inline-flex size-8 items-center justify-center text-secondary hover:text-navy">
+              <PageChevron direction="right" />
+            </Link>
+          ) : (
+            <span aria-hidden="true" className="inline-flex size-8 items-center justify-center text-secondary/35">
+              <PageChevron direction="right" />
+            </span>
+          )}
+        </li>
       </ol>
-      {page < pages ? <Link className="font-semibold text-brand" href={hrefFor(page + 1)}>Next</Link> : <span />}
+      <p className="text-sm text-secondary">{range}</p>
     </nav>
   );
 }
