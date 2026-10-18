@@ -5,7 +5,7 @@ import { ProductCard } from "@/components/products/product-card";
 import { Alert, EmptyState, PageHeader, Pagination, Skeleton } from "@/components/ui/primitives";
 import { toPublicError } from "@/lib/errors";
 import { pageMetadata } from "@/lib/metadata";
-import { LIST_PAGE_SIZE, pageCount, parsePage } from "@/lib/pagination";
+import { LIST_PAGE_SIZE, canonicalPage, pageParamNeedsRedirect, parsePage } from "@/lib/pagination";
 import { getServices } from "@/lib/services";
 
 export const metadata = pageMetadata("Search", "Search approved products by name, category, and tag.", "/search");
@@ -35,9 +35,9 @@ async function Results({ searchParams }: { searchParams: Promise<Record<string, 
     if (q) query.set("q", q);
     if (category) query.set("category", category);
     query.set("sort", sort);
-    const lastPage = pageCount(result.total, result.pageSize);
-    if (requestedPage > lastPage) {
-      redirectTo = searchHref(query, lastPage);
+    const canonical = canonicalPage(requestedPage, result.total, result.pageSize);
+    if (pageParamNeedsRedirect(params.page, canonical)) {
+      redirectTo = searchHref(query, canonical);
     } else {
       return (
         <>
@@ -58,7 +58,7 @@ async function Results({ searchParams }: { searchParams: Promise<Record<string, 
           {result.items.length === 0 ? <EmptyState title="No matches" body="Try another word or clear the category filter." /> : (
             <div className="grid gap-3">{result.items.map((product) => <ProductCard key={product.id} product={product} showRank={sort === "rank"} />)}</div>
           )}
-          <Pagination page={requestedPage} total={result.total} pageSize={result.pageSize} hrefFor={(next) => searchHref(query, next)} />
+          <Pagination page={canonical} total={result.total} pageSize={result.pageSize} hrefFor={(next) => searchHref(query, next)} />
           <p className="mt-4 text-sm"><Link className="text-brand" href="/new">Recently added</Link></p>
         </>
       );

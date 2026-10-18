@@ -5,7 +5,7 @@ import { PublicBoard } from "@/components/leaderboard/public-board";
 import { Skeleton } from "@/components/ui/primitives";
 import { boardQuery } from "@/config/catalogue";
 import { istDayKey } from "@/features/leaderboards/engine";
-import { LIST_PAGE_SIZE, listHref, pageCount, parsePage } from "@/lib/pagination";
+import { LIST_PAGE_SIZE, canonicalPage, listHref, pageParamNeedsRedirect, parsePage } from "@/lib/pagination";
 import { ConfigurationError, toPublicError } from "@/lib/errors";
 import { pageMetadata } from "@/lib/metadata";
 import { getServices } from "@/lib/services";
@@ -60,12 +60,12 @@ export async function Board({
     const categoryId = period === "daily" && categorySlug ? categories.find((category) => category.slug === categorySlug)?.id : undefined;
     const board = await services.leaderboards.get(scope, requestedPage, pageSize, { query, categoryId });
     total = board.total;
-    const lastPage = pageCount(total, pageSize);
-    if (requestedPage > lastPage) {
-      redirectTo = listHref(path, { category: categorySlug, query, page: lastPage });
+    const canonical = canonicalPage(requestedPage, total, pageSize);
+    if (pageParamNeedsRedirect(params.page, canonical, { dropPageSize: params.pageSize !== undefined })) {
+      redirectTo = listHref(path, { category: categorySlug, query, page: canonical });
     } else {
       entries = board.entries;
-      page = requestedPage;
+      page = canonical;
     }
     if (!redirectTo && period === "all_time" && scope.type !== "category") {
       try {

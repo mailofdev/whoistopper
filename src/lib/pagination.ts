@@ -23,14 +23,36 @@ export function parsePageSize(value: string | string[] | undefined, fallback = 1
 }
 
 export function paginate<T>(items: T[], page: number, pageSize: number): PageResult<T> {
-  const safePage = Math.max(1, page);
-  const start = (safePage - 1) * pageSize;
+  const size = Math.max(1, pageSize);
+  const safePage = canonicalPage(page, items.length, size);
+  const start = (safePage - 1) * size;
   return {
-    items: items.slice(start, start + pageSize),
+    items: items.slice(start, start + size),
     page: safePage,
-    pageSize,
+    pageSize: size,
     total: items.length,
   };
+}
+
+/** The page that actually contains rows, never past the last page. */
+export function canonicalPage(page: number, total: number, pageSize: number): number {
+  return Math.min(Math.max(1, Math.trunc(page) || 1), pageCount(total, pageSize));
+}
+
+/**
+ * Replace the URL when the page param is missing its canonical form, including `page=1`
+ * and a page past the end. `dropPageSize` covers old links that still carry a page size.
+ */
+export function pageParamNeedsRedirect(
+  raw: string | string[] | undefined,
+  canonical: number,
+  options?: { dropPageSize?: boolean },
+): boolean {
+  if (options?.dropPageSize) return true;
+  if (raw === undefined) return false;
+  const value = (Array.isArray(raw) ? raw[0] : raw) ?? "";
+  if (canonical <= 1) return true;
+  return value !== String(canonical);
 }
 
 export function pageCount(total: number, pageSize: number): number {

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from "react";
 import { cn } from "@/lib/cn";
-import { pageItems } from "@/lib/pagination";
+import { pageCount, pageItems } from "@/lib/pagination";
 
 export function Button({
   variant = "primary",
@@ -180,7 +180,7 @@ export function Pagination({
   hrefFor: (page: number) => string;
 }) {
   if (pageSize < 1 || total <= pageSize) return null;
-  const pages = Math.ceil(total / pageSize);
+  const pages = pageCount(total, pageSize);
   const current = Math.min(Math.max(page, 1), pages);
   const from = (current - 1) * pageSize + 1;
   const to = Math.min(current * pageSize, total);
@@ -196,7 +196,7 @@ export function Pagination({
             {item === "gap" ? (
               <span className="inline-flex min-w-8 items-center justify-center px-1 tracking-widest text-secondary">...</span>
             ) : item === current ? (
-              <span aria-current="page" className="inline-flex size-8 items-center justify-center rounded-full bg-brand text-sm font-medium text-on-brand">{item}</span>
+              <span aria-current="page" className="inline-flex h-8 min-w-8 items-center justify-center rounded-full bg-brand px-2 text-sm font-medium tabular-nums text-on-brand">{item}</span>
             ) : (
               <Link href={hrefFor(item)} aria-label={`Page ${item}`} className="inline-flex min-w-8 items-center justify-center rounded-full px-1.5 font-medium text-brand outline-none hover:text-brand-hover focus-visible:ring-2 focus-visible:ring-brand">
                 {item}

@@ -57,8 +57,8 @@ export function PublicBoard({
       </form>
       <div className="flex justify-center">
         <div className="glass inline-flex gap-1 rounded-full p-1 text-sm" role="tablist" aria-label="Ranking period">
-          <Tab href={category ? `/?category=${category}` : "/"} selected={scope === "all_time"}>Directory</Tab>
-          <Tab href={category ? `/leaderboard/today?category=${category}` : "/leaderboard/today"} selected={scope === "daily"}>Today&apos;s ads</Tab>
+          <Tab href={listHref("/", { category, query })} selected={scope === "all_time"}>Directory</Tab>
+          <Tab href={listHref("/leaderboard/today", { category, query })} selected={scope === "daily"}>Today&apos;s ads</Tab>
         </div>
       </div>
       <div className="glass flex flex-col gap-3 rounded-3xl p-4 sm:flex-row sm:items-center sm:justify-between">
