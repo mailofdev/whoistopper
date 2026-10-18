@@ -3,19 +3,19 @@
 ## Modes
 
 - Development and test, without live keys: sandbox. The upgrade form creates an internal order and opens `/payments/sandbox/[orderId]`. The page is labelled as a test. Success, failure, and cancel are simulated and never call a bank.
-- Production: live Razorpay only when `PAYMENT_MODE=live` and the key id, key secret, and webhook secret are all set. Otherwise checkout is unconfigured. Sandbox completion throws.
+- Production: live Razorpay only when `PAYMENT_MODE=live`, the key id, key secret, and webhook secret are set, and `ADVERTISING_LIVE_APPROVED=true`. That flag stays unset until the provider approves this fixed-price advertising model. Otherwise advertising checkout is refused. Sandbox completion throws in production.
 - Cashfree: webhook signatures can be verified. Creating a Cashfree order is not implemented.
 
 ## Order lifecycle
 
-1. The owner previews a rank. The preview is not reserved.
-2. `createRankingOrder` checks the floor on the server, stores a pending order, and reuses the same user idempotency key.
-3. Live mode creates a Razorpay order and stores the provider order id. Sandbox stores a `sandbox_` id.
-4. A verified `payment.captured` event moves the order to paid, writes one charge in the ledger, and allocates the rank inside a lock.
-5. If the verified amount cannot raise the current bid, fulfillment becomes `needs_refund` and the rank is not reduced.
-6. A refund event reverses the placement created by that order and writes a debit.
+1. The server reads the package price. A client-supplied price that differs is rejected.
+2. A pending order stores that server price, the package, and an estimated window.
+3. Live mode creates a Razorpay order only when advertising payments are explicitly approved. Sandbox stores a `sandbox_` id.
+4. A verified `payment.captured` event moves the order to paid, writes one charge, and creates one campaign. If the listing is not approved yet, the campaign stays scheduled and the clock starts on approval.
+5. A captured `ranking_upgrade` is marked `refund_pending` and does not change directory order.
+6. A refund event marks the campaign refunded and writes a debit.
 7. Failure or cancel after a paid order is ignored. A refund before payment is rejected.
-8. The same provider event id or payment id is a duplicate and does not change the rank again.
+8. The same provider event id does not create a second campaign.
 
 ## Reconciliation
 

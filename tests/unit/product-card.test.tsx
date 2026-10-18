@@ -24,10 +24,10 @@ const base: ProductCardModel = {
 describe("ProductCard", () => {
   it("labels a paid placement separately from a free listing", () => {
     const { rerender } = render(<ProductCard product={base} showRank />);
-    expect(screen.getByText("Paid placement")).toBeTruthy();
-    expect(screen.getByText("1")).toBeTruthy();
+    expect(screen.getByText("Advertisement")).toBeTruthy();
+    expect(screen.queryByText("₹5,000")).toBeNull();
     rerender(<ProductCard product={{ ...base, placement: "free", rank: null, amountPaise: null }} />);
-    expect(screen.getByText("Free listing")).toBeTruthy();
-    expect(screen.queryByText("Paid placement")).toBeNull();
+    expect(screen.getByText("Organic listing")).toBeTruthy();
+    expect(screen.queryByText("Advertisement")).toBeNull();
   });
 });

@@ -1,90 +1,112 @@
 import { describe, expect, it } from "vitest";
-import {
-  applyVerifiedBid,
-  assignRanks,
-  comparePlacements,
-  minimumAmountForTarget,
-  previewRank,
-  utcDayKey,
-  withScopeLock,
-  type Placement,
-} from "@/features/leaderboards/engine";
-import { DEFAULT_RANKING_RULES } from "@/features/leaderboards/engine";
+import { priceForCheckout } from "@/config/packages";
+import { campaignWindow, isAdvertisementVisible, orderOrganic, scheduleSharedPlacement } from "@/features/campaigns/schedule";
+import { decideProviderEvent } from "@/features/payments/state-machine";
+import { utcDayKey } from "@/features/leaderboards/engine";
 
-const rules = { ...DEFAULT_RANKING_RULES };
+describe("fixed-price campaigns", () => {
+  it("uses a 24-hour window instead of the next IST midnight", () => {
+    const start = new Date("2026-10-15T18:29:59.999Z");
+    const window = campaignWindow(start, 24);
+    expect(window.startsAt).toBe("2026-10-15T18:29:59.999Z");
+    expect(window.endsAt).toBe("2026-10-16T18:29:59.999Z");
+    expect(utcDayKey(start)).toBe("2026-10-15");
+  });
 
-function place(productId: string, amountPaise: number, confirmedAt: string): Placement {
-  return { id: productId, productId, amountPaise, confirmedAt };
-}
+  it("hides an advertisement the moment it expires", () => {
+    const start = new Date("2026-10-15T10:00:00.000Z");
+    const window = campaignWindow(start, 24);
+    expect(isAdvertisementVisible({ status: "active", ...window }, new Date("2026-10-16T09:59:00.000Z"))).toBe(true);
+    expect(isAdvertisementVisible({ status: "active", ...window }, new Date("2026-10-16T10:00:00.000Z"))).toBe(false);
+    expect(isAdvertisementVisible({ status: "scheduled", startsAt: null, endsAt: null }, start)).toBe(false);
+    expect(isAdvertisementVisible({ status: "expired", ...window }, start)).toBe(false);
+  });
 
-describe("ranking engine", () => {
-  it("orders by amount, then earlier confirmation, then product id", () => {
-    const ranked = assignRanks([
-      place("b", 500000, "2026-09-01T09:00:00.000Z"),
-      place("a", 500000, "2026-09-01T08:00:00.000Z"),
-      place("c", 1000, "2026-09-01T08:00:00.000Z"),
-      place("d", 500000, "2026-09-01T08:00:00.000Z"),
+  it("orders shared ads by start time and ignores price", () => {
+    const ordered = scheduleSharedPlacement([
+      { productId: "late-expensive", startsAt: "2026-10-02T00:00:00.000Z", placement: "daily_featured" as const, pricePaise: 99900 },
+      { productId: "early-cheap", startsAt: "2026-10-01T00:00:00.000Z", placement: "daily_featured" as const, pricePaise: 19900 },
     ]);
-    expect(ranked.map((item) => item.productId)).toEqual(["a", "d", "b", "c"]);
-    expect(ranked.map((item) => item.rank)).toEqual([1, 2, 3, 4]);
-    expect(comparePlacements(place("a", 10, "2026-01-01T00:00:00.000Z"), place("b", 10, "2026-01-01T00:00:00.000Z"))).toBeLessThan(0);
+    expect(ordered.map((item) => item.productId)).toEqual(["early-cheap", "late-expensive"]);
   });
 
-  it("uses the UTC calendar day, including the midnight boundary", () => {
-    expect(utcDayKey(new Date("2026-10-15T23:59:59.999Z"))).toBe("2026-10-15");
-    expect(utcDayKey(new Date("2026-10-16T00:00:00.000Z"))).toBe("2026-10-16");
+  it("orders organic listings by newest approval, then name", () => {
+    const ordered = orderOrganic([
+      { id: "b", name: "Beta", approvedAt: "2026-10-01T00:00:00.000Z" },
+      { id: "a", name: "Alpha", approvedAt: "2026-10-02T00:00:00.000Z" },
+      { id: "c", name: "Alpine", approvedAt: "2026-10-02T00:00:00.000Z" },
+    ]);
+    expect(ordered.map((item) => item.id)).toEqual(["a", "c", "b"]);
   });
 
-  it("requires a full increment above an existing bid and previews without reserving", () => {
-    const placements = [place("other", 20000, "2026-10-01T00:00:00.000Z")];
-    expect(minimumAmountForTarget({ placements, bidderProductId: "mine", rules })).toBe(9900);
-    expect(minimumAmountForTarget({ placements, bidderProductId: "other", rules })).toBe(21000);
-    expect(previewRank({
-      placements,
-      bidderProductId: "mine",
-      amountPaise: 25000,
-      confirmedAt: "2026-10-02T00:00:00.000Z",
-    })).toBe(1);
+  it("rejects a client price that does not match the server package", () => {
+    expect(priceForCheckout(19900)).toBe(19900);
+    expect(priceForCheckout(19900, 19900)).toBe(19900);
+    expect(() => priceForCheckout(19900, 100)).toThrow(/server/);
   });
 
-  it("rejects a later payment that is below the increment on an existing bid", () => {
-    const placements = [place("mine", 50000, "2026-10-01T00:00:00.000Z")];
-    expect(() => applyVerifiedBid({
-      placements,
-      bid: place("mine", 20000, "2026-10-02T00:00:00.000Z"),
-      rules,
-    })).toThrow(/minimum/);
-    const upgraded = applyVerifiedBid({
-      placements,
-      bid: place("mine", 51000, "2026-10-02T00:00:00.000Z"),
-      rules,
-    });
-    expect(upgraded.applied).toBe(true);
-    expect(upgraded.rank).toBe(1);
+  it("schedules an advertising package and does not allocate a rank", () => {
+    const decision = decideProviderEvent({
+      id: "40000000-0000-4000-8000-000000000001",
+      status: "pending",
+      amountPaise: 19900,
+      currency: "INR",
+      purpose: "advertising_package",
+      providerPaymentId: null,
+      fulfillment: "pending",
+    }, {
+      provider: "razorpay",
+      eventId: "evt_ad",
+      type: "payment.captured",
+      providerOrderId: "order_1",
+      providerPaymentId: "pay_1",
+      amountPaise: 19900,
+      currency: "INR",
+    }, new Set(), "2026-10-15T00:00:00.000Z");
+    expect(decision.scheduleCampaign).toBe(true);
+    expect(decision.allocateRank).toBe(false);
+    expect(decision.status).toBe("paid");
+    const again = decideProviderEvent({
+      id: "40000000-0000-4000-8000-000000000001",
+      status: "paid",
+      amountPaise: 19900,
+      currency: "INR",
+      purpose: "advertising_package",
+      providerPaymentId: "pay_1",
+      fulfillment: "fulfilled",
+    }, {
+      provider: "razorpay",
+      eventId: "evt_ad",
+      type: "payment.captured",
+      providerOrderId: "order_1",
+      providerPaymentId: "pay_1",
+      amountPaise: 19900,
+      currency: "INR",
+    }, new Set(["evt_ad"]), "2026-10-15T00:00:01.000Z");
+    expect(again.duplicate).toBe(true);
+    expect(again.scheduleCampaign).toBe(false);
   });
 
-  it("serialises simultaneous upgrades so both bids survive", async () => {
-    let placements = [place("seed", 9900, "2026-10-01T00:00:00.000Z")];
-    const first = withScopeLock("all_time", async () => {
-      await new Promise((resolve) => setTimeout(resolve, 20));
-      const result = applyVerifiedBid({
-        placements,
-        bid: place("one", 20000, "2026-10-02T00:00:00.100Z"),
-        rules,
-      });
-      placements = result.placements;
-      return result.rank;
-    });
-    const second = withScopeLock("all_time", async () => {
-      const result = applyVerifiedBid({
-        placements,
-        bid: place("two", 30000, "2026-10-02T00:00:00.200Z"),
-        rules,
-      });
-      placements = result.placements;
-      return result.rank;
-    });
-    await Promise.all([first, second]);
-    expect(assignRanks(placements).map((item) => item.productId)).toEqual(["two", "one", "seed"]);
+  it("marks a retired ranking payment for refund instead of moving a listing", () => {
+    const decision = decideProviderEvent({
+      id: "40000000-0000-4000-8000-000000000001",
+      status: "pending",
+      amountPaise: 9900,
+      currency: "INR",
+      purpose: "ranking_upgrade",
+      providerPaymentId: null,
+      fulfillment: "pending",
+    }, {
+      provider: "razorpay",
+      eventId: "evt_old",
+      type: "payment.captured",
+      providerOrderId: "order_1",
+      providerPaymentId: "pay_1",
+      amountPaise: 9900,
+      currency: "INR",
+    }, new Set(), "2026-10-15T00:00:00.000Z");
+    expect(decision.allocateRank).toBe(false);
+    expect(decision.status).toBe("refund_pending");
+    expect(decision.fulfillment).toBe("needs_refund");
   });
 });

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
+import { fieldsFor } from "@/config/catalogue";
 import { saveProductAction } from "@/features/products/actions";
 import { productSchema } from "@/lib/validation/schemas";
 import { Alert, Button, Field, SelectInput, TextArea, TextInput } from "@/components/ui/primitives";
@@ -24,6 +25,7 @@ export function ProductForm({
     categorySlug: string;
     tags: string;
     creatorName: string;
+    details?: Record<string, string>;
   };
 }) {
   const router = useRouter();
@@ -41,8 +43,11 @@ export function ProductForm({
       logoUrl: "",
       socialLinks: {},
       submit: true,
+      details: defaults?.details ?? {},
     },
   });
+  const [categorySlug, setCategorySlug] = useState(defaults?.categorySlug ?? categories[0]?.slug ?? "");
+  const fields = fieldsFor(categories.find((item) => item.slug === categorySlug)?.fieldSet ?? "");
 
   return (
     <form
@@ -68,10 +73,24 @@ export function ProductForm({
         <TextArea {...form.register("fullDescription")} />
       </Field>
       <Field label="Category" error={form.formState.errors.categorySlug?.message}>
-        <SelectInput {...form.register("categorySlug")}>
+        <SelectInput {...form.register("categorySlug", { onChange: (event) => setCategorySlug(event.target.value) })}>
           {categories.map((category) => <option key={category.id} value={category.slug}>{category.name}</option>)}
         </SelectInput>
       </Field>
+      {fields.map((field) => (
+        <Field key={field.key} label={`${field.label}${field.required ? " (required)" : " (optional)"}`} hint={field.hint}>
+          {field.kind === "select" ? (
+            <SelectInput {...form.register(`details.${field.key}`)}>
+              <option value="">Choose one</option>
+              {field.options?.map((option) => <option key={option} value={option}>{option}</option>)}
+            </SelectInput>
+          ) : field.kind === "textarea" ? (
+            <TextArea {...form.register(`details.${field.key}`)} />
+          ) : (
+            <TextInput {...form.register(`details.${field.key}`)} />
+          )}
+        </Field>
+      ))}
       <Field label="Tags" hint="Comma-separated, up to 8." error={form.formState.errors.tags?.message}>
         <TextInput
           defaultValue={defaults?.tags ?? ""}

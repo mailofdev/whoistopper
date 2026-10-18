@@ -27,8 +27,11 @@ export function RazorpayCheckout({
 }) {
   const router = useRouter();
   const routerRef = useRef(router);
-  routerRef.current = router;
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    routerRef.current = router;
+  }, [router]);
 
   useEffect(() => {
     let cancelled = false;

@@ -21,7 +21,7 @@ Public pages are Server Components. Forms that need React Hook Form are Client C
 
 ## Payments
 
-`src/features/payments/gateway.ts` creates Razorpay orders when live keys exist. Sandbox order ids are local. Webhooks verify signatures and call `applyProviderEvent`. Rank changes for real data happen inside the SQL function with an advisory lock. Mock data uses the TypeScript ranking engine and an in-process lock.
+`src/features/payments/gateway.ts` creates Razorpay orders when live keys exist and `ADVERTISING_LIVE_APPROVED=true`. Otherwise live advertising checkout stays off. Sandbox order ids are local and are not available in production. Webhooks verify signatures and call `apply_provider_event`, which records the ledger row and schedules a fixed-price campaign. A browser redirect does not start a campaign. Older amount-based ranking is not applied to the public directory.
 
 ## Boundaries
 

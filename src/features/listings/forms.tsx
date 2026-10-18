@@ -1,8 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { fieldsFor } from "@/config/catalogue";
+import { fieldsFor, isActiveFieldSet } from "@/config/catalogue";
+import { formatInrFromPaise } from "@/lib/money";
+import type { AdPackageDefinition } from "@/config/packages";
 import {
   removeManagedListingAction,
   revokeManageLinkAction,
@@ -13,15 +15,20 @@ import {
 import { Alert, Button, Field, SelectInput, TextArea, TextInput } from "@/components/ui/primitives";
 import type { Category } from "@/types/domain";
 
-export function ListingForm({ categories }: { categories: Category[] }) {
-  const [categorySlug, setCategorySlug] = useState(categories[0]?.slug ?? "");
+export function ListingForm({ categories, packages }: { categories: Category[]; packages: AdPackageDefinition[] }) {
+  const open = categories.filter((item) => isActiveFieldSet(item.fieldSet));
+  const [categorySlug, setCategorySlug] = useState(open[0]?.slug ?? "");
+  const [filter, setFilter] = useState("");
   const [placement, setPlacement] = useState<"free" | "paid">("free");
+  const [packageSlug, setPackageSlug] = useState<string>(packages[0]?.slug ?? "");
+  const [previewing, setPreviewing] = useState(false);
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
   const [saved, setSaved] = useState<{ managePath: string; checkoutHref?: string; warning?: string } | null>(null);
-  const category = categories.find((item) => item.slug === categorySlug) ?? categories[0];
-  const fields = useMemo(() => fieldsFor(category?.fieldSet ?? "website"), [category?.fieldSet]);
-  const groups = [...new Map(categories.map((item) => [item.groupSlug, item.groupName])).entries()];
+  const category = open.find((item) => item.slug === categorySlug) ?? open[0];
+  const fields = fieldsFor(category?.fieldSet ?? "");
+  const visible = open.filter((item) => item.name.toLowerCase().includes(filter.trim().toLowerCase()));
+  const selectedPackage = packages.find((item) => item.slug === packageSlug) ?? packages[0];
 
   if (saved) {
     return (
@@ -38,8 +45,13 @@ export function ListingForm({ categories }: { categories: Category[] }) {
   return (
     <form
       className="glass space-y-4 rounded-3xl p-5"
+      onChange={() => setPreviewing(false)}
       onSubmit={async (event) => {
         event.preventDefault();
+        if (!previewing) {
+          setPreviewing(true);
+          return;
+        }
         setPending(true);
         setError("");
         const result = await submitListingAction(new FormData(event.currentTarget));
@@ -49,13 +61,39 @@ export function ListingForm({ categories }: { categories: Category[] }) {
       }}
     >
       {error ? <Alert>{error}</Alert> : null}
-      <Field label="Category">
-        <SelectInput name="categorySlug" value={categorySlug} onChange={(event) => setCategorySlug(event.target.value)} required>
-          {groups.map(([slug, name]) => (
-            <optgroup key={slug} label={name}>
-              {categories.filter((item) => item.groupSlug === slug).map((item) => <option key={item.id} value={item.slug}>{item.name}</option>)}
-            </optgroup>
-          ))}
+      <Field label="Search categories">
+        <TextInput value={filter} onChange={(event) => setFilter(event.target.value)} placeholder="Search the 10 categories" aria-label="Search categories" />
+      </Field>
+      <Field label="Category" hint={category?.description}>
+        <SelectInput
+          name="categorySlug"
+          value={category?.slug ?? ""}
+          required
+          onChange={(event) => {
+            const next = event.target.value;
+            const form = event.currentTarget.form;
+            const dirty = fields.some((field) => {
+              const control = form?.elements.namedItem(`detail_${field.key}`);
+              return control instanceof HTMLInputElement || control instanceof HTMLTextAreaElement || control instanceof HTMLSelectElement
+                ? control.value.trim().length > 0
+                : false;
+            });
+            if (dirty && !window.confirm("Switching category clears fields that only apply to the current category.")) {
+              event.target.value = category?.slug ?? "";
+              return;
+            }
+            if (form) {
+              for (const field of fields) {
+                const control = form.elements.namedItem(`detail_${field.key}`);
+                if (control instanceof HTMLInputElement || control instanceof HTMLTextAreaElement) control.value = "";
+                if (control instanceof HTMLSelectElement) control.value = "";
+              }
+            }
+            setCategorySlug(next);
+            setPreviewing(false);
+          }}
+        >
+          {visible.map((item) => <option key={item.id} value={item.slug}>{item.name}</option>)}
         </SelectInput>
       </Field>
       <Field label="Title" hint="The public name. It is not a verified claim.">
@@ -77,11 +115,16 @@ export function ListingForm({ categories }: { categories: Category[] }) {
         <input className="block text-sm" name="image" type="file" accept="image/jpeg,image/png,image/webp" />
       </Field>
       {fields.map((field) => (
-        <Field key={field.key} label={field.label} hint={field.hint}>
-          {field.kind === "textarea" ? (
+        <Field key={`${category?.slug ?? "category"}-${field.key}`} label={`${field.label}${field.required ? " (required)" : " (optional)"}`} hint={field.hint}>
+          {field.kind === "select" ? (
+            <SelectInput name={`detail_${field.key}`} required={field.required} defaultValue="">
+              <option value="">{field.required ? "Choose one" : "Optional"}</option>
+              {field.options?.map((option) => <option key={option} value={option}>{option}</option>)}
+            </SelectInput>
+          ) : field.kind === "textarea" ? (
             <TextArea name={`detail_${field.key}`} required={field.required} maxLength={field.max} />
           ) : (
-            <TextInput name={`detail_${field.key}`} required={field.required} maxLength={field.max} inputMode={field.kind === "number" ? "numeric" : field.kind === "url" ? "url" : "text"} />
+            <TextInput name={`detail_${field.key}`} required={field.required} maxLength={field.max} defaultValue={field.key === "country" ? "India" : undefined} inputMode={field.kind === "url" ? "url" : "text"} />
           )}
         </Field>
       ))}
@@ -93,31 +136,46 @@ export function ListingForm({ categories }: { categories: Category[] }) {
         <TextInput name="social_linkedin" placeholder="https://linkedin.com/…" aria-label="LinkedIn URL" />
       </fieldset>
       <fieldset>
-        <legend className="text-sm font-medium">Placement</legend>
+        <legend className="text-sm font-medium">Advertising</legend>
         <div className="mt-2 flex flex-wrap gap-4 text-sm">
-          <label className="flex items-center gap-2"><input type="radio" name="placement" value="free" checked={placement === "free"} onChange={() => setPlacement("free")} /> Free listing</label>
-          <label className="flex items-center gap-2"><input type="radio" name="placement" value="paid" checked={placement === "paid"} onChange={() => setPlacement("paid")} /> Paid rank from ₹99</label>
+          <label className="flex items-center gap-2"><input type="radio" name="placement" value="free" checked={placement === "free"} onChange={() => setPlacement("free")} /> Organic listing</label>
+          <label className="flex items-center gap-2"><input type="radio" name="placement" value="paid" checked={placement === "paid"} onChange={() => setPlacement("paid")} /> Fixed-price advertisement</label>
         </div>
       </fieldset>
-      {placement === "paid" ? (
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Field label="Rank amount in rupees" hint="Whole rupees. Raising a rank must be at least ₹10 above the current amount.">
-            <TextInput name="amountRupees" inputMode="numeric" defaultValue="99" required />
-          </Field>
-          <Field label="Board">
-            <SelectInput name="scope" defaultValue="all_time">
-              <option value="all_time">All-time</option>
-              <option value="daily">Today (IST)</option>
-              <option value="category">This category</option>
+      {placement === "paid" && selectedPackage ? (
+        <div className="space-y-3">
+          <Field label="Package" hint="The price is stored on the server. This form cannot set a different price.">
+            <SelectInput name="packageSlug" value={selectedPackage.slug} onChange={(event) => setPackageSlug(event.target.value)}>
+              {packages.map((item) => <option key={item.slug} value={item.slug}>{item.name} · {formatInrFromPaise(item.pricePaise)}</option>)}
             </SelectInput>
           </Field>
-          <label className="flex items-start gap-2 text-sm sm:col-span-2">
-            <input className="mt-1" type="checkbox" name="termsAccepted" />
-            <span>I agree to the <Link className="text-brand underline" href="/terms">Terms of Service</Link>. The rank is the confirmed payment, not a review.</span>
-          </label>
+          <input type="hidden" name="clientPricePaise" value={selectedPackage.pricePaise} />
+          <p className="text-sm leading-6 text-secondary">{selectedPackage.description}</p>
+          <p className="text-sm leading-6 text-secondary">
+            {formatInrFromPaise(selectedPackage.pricePaise)} for {selectedPackage.durationHours} hours from activation.
+            If the listing is already approved, the clock starts when payment is verified. If it is still in review, the clock starts when it is approved. A rejection before the advertisement goes live is eligible for a refund review. The confirmed start and end are stored in Asia/Kolkata time when the campaign becomes active.
+          </p>
+          <Field label="Contact email" hint="Used to reach you about this campaign. It is not shown on the public listing.">
+            <TextInput name="contactEmail" type="email" required autoComplete="email" />
+          </Field>
         </div>
       ) : null}
-      <Button type="submit" disabled={pending}>{pending ? "Saving…" : "Publish listing"}</Button>
+      <label className="flex items-start gap-2 text-sm">
+        <input className="mt-1" type="checkbox" name="authorized" required />
+        <span>I own this destination or I am authorised to promote it. I will not submit an impersonation or a destination I cannot lawfully advertise.</span>
+      </label>
+      <label className="flex items-start gap-2 text-sm">
+        <input className="mt-1" type="checkbox" name="termsAccepted" required />
+        <span>I accept the <Link className="text-brand underline" href="/terms">Terms</Link>, <Link className="text-brand underline" href="/rules">advertising rules</Link>, and <Link className="text-brand underline" href="/privacy">Privacy Policy</Link>.</span>
+      </label>
+      {previewing ? (
+        <div className="rounded-2xl bg-muted px-4 py-3 text-sm leading-6" aria-live="polite">
+          <p className="font-semibold text-navy">Preview</p>
+          <p>{category?.name}. {placement === "paid" && selectedPackage ? `${selectedPackage.name} at ${formatInrFromPaise(selectedPackage.pricePaise)}. This is an advertisement, not a rating.` : "Organic listing. It is not an advertisement."}</p>
+          <p>Submit stores this listing. A paid campaign starts only after the payment is verified on the server.</p>
+        </div>
+      ) : null}
+      <Button type="submit" disabled={pending || open.length === 0}>{pending ? "Saving…" : previewing ? "Submit listing" : "Review listing"}</Button>
     </form>
   );
 }
@@ -168,9 +226,15 @@ export function ManageForm({
         <Field label="Replace image" hint="Optional JPEG, PNG, or WebP under 2 MB.">
           <input className="block text-sm" name="image" type="file" accept="image/jpeg,image/png,image/webp" />
         </Field>
+        {fields.length === 0 ? <Alert>This category is no longer open. Contact support to move the listing.</Alert> : null}
         {fields.map((field) => (
-          <Field key={field.key} label={field.label} hint={field.hint}>
-            {field.kind === "textarea" ? (
+          <Field key={field.key} label={`${field.label}${field.required ? " (required)" : " (optional)"}`} hint={field.hint}>
+            {field.kind === "select" ? (
+              <SelectInput name={`detail_${field.key}`} required={field.required} defaultValue={listing.details[field.key] ?? ""}>
+                <option value="">Choose one</option>
+                {field.options?.map((option) => <option key={option} value={option}>{option}</option>)}
+              </SelectInput>
+            ) : field.kind === "textarea" ? (
               <TextArea name={`detail_${field.key}`} defaultValue={listing.details[field.key] ?? ""} required={field.required} maxLength={field.max} />
             ) : (
               <TextInput name={`detail_${field.key}`} defaultValue={listing.details[field.key] ?? ""} required={field.required} maxLength={field.max} />
@@ -181,6 +245,10 @@ export function ManageForm({
         <TextInput name="social_youtube" defaultValue={listing.socialLinks.youtube ?? ""} aria-label="YouTube URL" placeholder="https://youtube.com/…" />
         <TextInput name="social_x" defaultValue={listing.socialLinks.x ?? ""} aria-label="X URL" placeholder="https://x.com/…" />
         <TextInput name="social_linkedin" defaultValue={listing.socialLinks.linkedin ?? ""} aria-label="LinkedIn URL" placeholder="https://linkedin.com/…" />
+        <label className="flex items-start gap-2 text-sm">
+          <input className="mt-1" type="checkbox" name="authorized" required />
+          <span>I still own this destination or I am authorised to promote it.</span>
+        </label>
         <Button type="submit">Save changes</Button>
       </form>
       <div className="flex flex-wrap gap-3">

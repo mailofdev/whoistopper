@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { Alert, Skeleton } from "@/components/ui/primitives";
 import { site } from "@/config/site";
+import { PACKAGE_DEFAULTS } from "@/config/packages";
 import { toPublicError } from "@/lib/errors";
 import { pageMetadata } from "@/lib/metadata";
 import { formatInrFromPaise } from "@/lib/money";
@@ -8,7 +9,7 @@ import { getServices } from "@/lib/services";
 
 export const metadata = pageMetadata(
   "About",
-  "RankPush is a public leaderboard. Rank is the amount you pay in INR. It is a labelled advertisement, not an auction or a review.",
+  "RankPush is a public directory. Fixed-price advertisements are labelled and are not a rating or an endorsement.",
   "/about",
 );
 
@@ -21,10 +22,8 @@ export default function Page() {
 }
 
 async function About() {
-  let paid = 0;
   let listed = 0;
   let categories = 0;
-  let highest = 0;
   let notice = "";
   try {
     const services = getServices();
@@ -33,9 +32,7 @@ async function About() {
       services.leaderboards.get({ type: "all_time", key: "all_time" }, 1, 1),
     ]);
     categories = categoryList.filter((category) => category.isActive).length;
-    paid = board.paidCount;
     listed = board.total;
-    highest = board.entries.find((entry) => entry.placement === "paid" && entry.amountPaise)?.amountPaise ?? 0;
   } catch (error) {
     notice = toPublicError(error).message;
   }
@@ -45,35 +42,28 @@ async function About() {
       <header>
         <h1 className="text-4xl font-semibold tracking-tight">About</h1>
         <p className="mt-4 leading-7 text-secondary">
-          {site.name} is a public leaderboard. There are no third-party ads, no API for sale, and no revenue share. You pay to stand above everyone else. Rank is what you pay — nothing else.
+          {site.name} is a public directory of websites, digital products, creator profiles, and other permitted destinations. There is no auction, no bidding, and no pay-more-to-move-ahead.
         </p>
         <p className="mt-3 leading-7 text-secondary">
-          A paid rank is a labelled advertisement priced in Indian rupees. It is not an auction, a bidding platform, a review, a rating, or an endorsement.
+          An advertisement is a fixed package with a disclosed price, place, and duration. It is not a review, a rating, or an endorsement, and it does not promise traffic or sales.
         </p>
       </header>
-      <section className="space-y-3 leading-7 text-secondary">
-        <h2 className="text-xl font-semibold text-navy">What you are paying for</h2>
-        <p>You can pay to list a public website, profile, or other allowed destination and to occupy a rank based on the amount paid, under the published Rules. You choose one board. Someone else can pay more on that board and place above you.</p>
-        <p>All-time keeps the confirmed amount for that listing and does not expire. Today only counts amounts confirmed since midnight IST, and starts empty the next day. Each category has its own board. A free listing, if approved, sits after every paid row.</p>
-      </section>
       {notice ? <Alert>{notice}</Alert> : (
         <section className="grid gap-3 sm:grid-cols-3">
-          <Stat value={String(listed)} label="listings on the all-time board" />
-          <Stat value={String(paid)} label="paid ranks" />
-          <Stat value={highest ? formatInrFromPaise(highest) : "—"} label="highest all-time rank" />
-          <Stat value={String(categories)} label="categories" />
-          <Stat value="₹99" label="minimum new rank" />
-          <Stat value="00:00 IST" label="when Today resets" />
+          <Stat value={String(listed)} label="listings in the directory sample" />
+          <Stat value={String(categories)} label="active categories" />
+          <Stat value={formatInrFromPaise(PACKAGE_DEFAULTS[0].pricePaise)} label="current daily package test price" />
         </section>
       )}
       <section className="space-y-3">
-        <h2 className="text-xl font-semibold">From the rules, in short</h2>
+        <h2 className="text-xl font-semibold">How placement works</h2>
         <div className="grid gap-3 sm:grid-cols-3">
-          <Note title="Rank is the amount" body="The position follows the confirmed payment. It does not mean we checked the product or liked it." />
-          <Note title="Someone can pay more" body="A higher confirmed amount takes the place above you. The preview is not reserved while you are paying." />
-          <Note title="Today starts over" body="The daily board uses the IST date. Yesterday stays in history and does not carry onto the new day." />
+          <Note title="Organic listings" body="Approved listings stay in the directory, newest approval first, then name. Spend does not change that order." />
+          <Note title="Fixed packages" body="Daily, weekly, and category packages say where the advertisement appears and how long it runs." />
+          <Note title="Shared slots" body="When several advertisements share a place, the earlier activation stays ahead. A larger payment does not jump the queue." />
         </div>
       </section>
+      <p className="text-sm leading-7 text-secondary">The prices shown are the current test configuration. Live charges stay off until the payment provider approves this model. This page is not legal advice.</p>
     </article>
   );
 }

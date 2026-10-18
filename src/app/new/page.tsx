@@ -13,7 +13,7 @@ export default function Page() {
 async function List() {
   try {
     const items = await getServices().products.listRecent(12);
-    return <><PageHeader title="Recently added" description="Newest approved listings. A new listing is not ranked until a payment is verified." /><div className="grid gap-3">{items.map((product) => <ProductCard key={product.id} product={product} />)}</div></>;
+    return <><PageHeader title="Recently added" description="Newest approved listings. Organic order does not follow advertising spend." /><div className="grid gap-3">{items.map((product) => <ProductCard key={product.id} product={product} />)}</div></>;
   } catch (error) {
     return <Alert>{toPublicError(error).message}</Alert>;
   }

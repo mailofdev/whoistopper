@@ -1,15 +1,4 @@
 {
-  "node": {
-    "40bcb797e5a7590ab9a4ba9d1420a7dd44167f0462": {
-      "workers": {
-        "app/page": {
-          "moduleId": "[project]/.next-internal/server/app/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/leaderboards/claim.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false
-        }
-      },
-      "exportedName": "claimRankAction",
-      "filename": "src/features/leaderboards/claim.ts"
-    }
-  },
+  "node": {},
   "edge": {}
 }

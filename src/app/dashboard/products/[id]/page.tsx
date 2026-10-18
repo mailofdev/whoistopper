@@ -14,7 +14,7 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
   const categories = await services.categories.list();
   return (
     <>
-      <PageHeader title={product.name} description={`Status: ${product.status.replaceAll("_", " ")}. Ownership: ${product.ownershipVerified ? "verified" : "pending"}.`} action={<Link className="font-semibold text-brand" href={`/dashboard/products/${id}/upgrade`}>Upgrade rank</Link>} />
+      <PageHeader title={product.name} description={`Status: ${product.status.replaceAll("_", " ")}. Ownership: ${product.ownershipVerified ? "verified" : "pending"}.`} action={<Link className="font-semibold text-brand" href={`/dashboard/products/${id}/upgrade`}>Buy an advertisement</Link>} />
       <ProductForm
         categories={categories}
         productId={product.id}
@@ -26,6 +26,7 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
           categorySlug: product.categorySlug,
           tags: product.tags.join(", "),
           creatorName: product.creatorName,
+          details: product.details,
         }}
       />
     </>

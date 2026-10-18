@@ -2,11 +2,9 @@
 
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
-import { fieldsFor, sanitizeDetails } from "@/config/catalogue";
-import { istDayKey } from "@/features/leaderboards/engine";
-import { openListingBid } from "@/features/listings/bids";
+import { assertPermittedCopy, fieldsFor, isActiveFieldSet, sanitizeDetails } from "@/config/catalogue";
+import { openPackageCheckout } from "@/features/payments/packages";
 import { readListingImage } from "@/features/listings/media";
-import { rupeesToPaise } from "@/lib/money";
 import { newToken, sha256 } from "@/lib/security/hash";
 import { rateLimit } from "@/lib/security/rate-limit";
 import { createSupabaseAdminClient } from "@/lib/supabase/clients";
@@ -73,26 +71,21 @@ export async function submitListingAction(formData: FormData): Promise<ListingRe
       return { ok: false, error: error instanceof Error ? error.message : "Enter a public URL." };
     }
 
-    const category = await admin.from("categories").select("id, field_set").eq("slug", categorySlug).eq("is_active", true).maybeSingle();
-    if (!category.data) return { ok: false, error: "Choose a category." };
-    const fieldSet = String(category.data.field_set || "website");
+    if (text(formData, "authorized") !== "on") return { ok: false, error: "Confirm that you own this destination or are allowed to promote it." };
+    if (text(formData, "termsAccepted") !== "on") return { ok: false, error: "Accept the Terms, advertising rules, and Privacy Policy." };
+    const category = await admin.from("categories").select("id, field_set, slug").eq("slug", categorySlug).eq("is_active", true).maybeSingle();
+    if (!category.data || !isActiveFieldSet(String(category.data.field_set))) return { ok: false, error: "Choose a category." };
+    const fieldSet = String(category.data.field_set);
     const detailInput: Record<string, string> = {};
     for (const field of fieldsFor(fieldSet)) detailInput[field.key] = text(formData, `detail_${field.key}`);
     const details = sanitizeDetails(fieldSet, detailInput);
-    for (const value of Object.values(details)) {
-      if (value.startsWith("https://")) normalizeWebsiteUrl(value);
-    }
+    details.authorization = "confirmed";
+    assertPermittedCopy(fieldSet, [name, shortDescription, fullDescription, ...Object.values(details)]);
     const links = socialLinks(formData);
-    let amountPaise = 0;
-    let scope: "all_time" | "daily" | "category" = "all_time";
-    if (placement === "paid") {
-      if (text(formData, "termsAccepted") !== "on") return { ok: false, error: "Confirm the Terms of Service before paying." };
-      amountPaise = rupeesToPaise(Number(text(formData, "amountRupees")));
-      if (!Number.isInteger(amountPaise) || amountPaise < 9900 || amountPaise > 100_000_000) {
-        return { ok: false, error: "Enter an amount from ₹99 to ₹10,00,000." };
-      }
-      const chosen = text(formData, "scope");
-      scope = chosen === "daily" ? "daily" : chosen === "category" ? "category" : "all_time";
+    const packageSlug = placement === "paid" ? text(formData, "packageSlug") : "";
+    const contactEmail = text(formData, "contactEmail");
+    if (packageSlug && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)) {
+      return { ok: false, error: "Add a contact email so we can reach you about this campaign." };
     }
     const logoUrl = await uploadImage(formData);
 
@@ -128,16 +121,19 @@ export async function submitListingAction(formData: FormData): Promise<ListingRe
 
     let checkoutHref: string | undefined;
     let warning: string | undefined;
-    if (placement === "paid") {
-      const scopeKey = scope === "daily" ? istDayKey(new Date()) : scope === "category" ? category.data.id : "all_time";
-      const current = await admin.from("ranking_placements").select("amount_paise").eq("product_id", inserted.data.id).eq("scope_type", scope).eq("scope_key", scopeKey).eq("status", "active").maybeSingle();
-      if (current.data && amountPaise < Number(current.data.amount_paise) + 1000) {
-        warning = "The listing is saved. Raise the amount by at least ₹10 above the current rank before paying.";
-      } else {
-        const bid = await openListingBid({ productId: inserted.data.id, amountPaise, scopeType: scope, scopeKey });
-        if (!bid.ok) warning = `The listing is saved. ${bid.error}`;
-        else checkoutHref = bid.href;
-      }
+    if (contactEmail) {
+      await admin.from("listing_contacts").upsert({ product_id: inserted.data.id, email: contactEmail });
+    }
+    if (packageSlug) {
+      const clientPrice = Number(text(formData, "clientPricePaise"));
+      const bid = await openPackageCheckout({
+        productId: inserted.data.id,
+        packageSlug,
+        categoryId: category.data.id,
+        clientPricePaise: Number.isInteger(clientPrice) ? clientPrice : undefined,
+      });
+      if (!bid.ok) warning = `The listing is saved. ${bid.error}`;
+      else checkoutHref = bid.href;
     }
 
     revalidatePath("/");
@@ -171,7 +167,7 @@ export async function loadManagedListing(token: string) {
     fullDescription: String(product.full_description),
     creatorName: String(product.creator_name),
     categorySlug: categoryRow?.slug ?? "",
-    fieldSet: categoryRow?.field_set ?? "website",
+    fieldSet: categoryRow?.field_set ?? "",
     details: (product.details as Record<string, string> | null) ?? {},
     socialLinks: (product.social_links as Record<string, string> | null) ?? {},
     status: String(product.status),
@@ -193,10 +189,13 @@ export async function updateManagedListingAction(formData: FormData): Promise<Li
     if (shortDescription.length < 12 || shortDescription.length > 160) return { ok: false, error: "Add a short description between 12 and 160 characters." };
     if (fullDescription.length < 12 || fullDescription.length > 5000) return { ok: false, error: "Add a description between 12 and 5000 characters." };
     const websiteUrl = normalizeWebsiteUrl(text(formData, "websiteUrl"));
-    const fieldSet = text(formData, "fieldSet") || "website";
+    const fieldSet = text(formData, "fieldSet");
+    if (!isActiveFieldSet(fieldSet)) return { ok: false, error: "This category is not open for changes." };
+    if (text(formData, "authorized") !== "on") return { ok: false, error: "Confirm that you own this destination or are allowed to promote it." };
     const detailInput: Record<string, string> = {};
     for (const field of fieldsFor(fieldSet)) detailInput[field.key] = text(formData, `detail_${field.key}`);
     const details = sanitizeDetails(fieldSet, detailInput);
+    details.authorization = "confirmed";
     const links = socialLinks(formData);
     const logoUrl = await uploadImage(formData);
     const current = found.product as { id: string; slug: string; logo_url: string | null; website_url: string; status: string };
@@ -256,6 +255,7 @@ export async function removeManagedListingAction(formData: FormData): Promise<{ 
   const removed = await found.admin.from("products").update({ status: "removed" }).eq("id", product.id);
   if (removed.error) return { ok: false, error: "Could not remove this listing." };
   await found.admin.from("ranking_placements").update({ status: "superseded" }).eq("product_id", product.id).eq("status", "active");
+  await found.admin.from("ad_campaigns").update({ status: "cancelled" }).eq("product_id", product.id).in("status", ["active", "scheduled"]);
   await found.admin.from("listing_manage_tokens").update({ revoked_at: new Date().toISOString() }).eq("product_id", product.id);
   revalidatePath("/");
   revalidatePath(`/products/${product.slug}`);

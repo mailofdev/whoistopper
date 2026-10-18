@@ -1,28 +1,46 @@
 import { describe, expect, it } from "vitest";
-import { CATALOGUE, CATEGORY_GROUPS, boardQuery, sanitizeDetails } from "@/config/catalogue";
+import { ACTIVE_CATEGORY_SLUGS, CATALOGUE, CATEGORY_MIGRATION, RETIRED_CATEGORY_SLUGS, boardQuery, fieldsFor, sanitizeDetails } from "@/config/catalogue";
 import { istDayKey, shiftIstDay } from "@/features/leaderboards/engine";
 import { readListingImage } from "@/features/listings/media";
 import { sha256 } from "@/lib/security/hash";
 
-describe("presence catalogue", () => {
-  it("covers the four groups and the public categories", () => {
-    expect(CATEGORY_GROUPS.map((group) => group.name)).toEqual([
-      "Digital Presence",
-      "Lifestyle & Possessions",
-      "Success & Identity",
-      "Community & Entertainment",
-    ]);
-    expect(CATALOGUE).toHaveLength(14);
-    expect(new Set(CATALOGUE.map((item) => item.group))).toEqual(new Set(CATEGORY_GROUPS.map((group) => group.slug)));
+const sample: Record<string, Record<string, string>> = {
+  "websites-saas": { productType: "SaaS", useCase: "Send invoices", audience: "Studios", pricingUrl: "https://example.com/pricing" },
+  "business-startups": { businessType: "Startup", industry: "Software", market: "India" },
+  "developer-tools": { toolType: "Library", platform: "TypeScript", openSource: "Yes", repositoryUrl: "https://github.com/example/tool" },
+  "instagram-pages": { profileUrl: "https://instagram.com/example", handle: "example", niche: "Design" },
+  "youtube-channels": { channelUrl: "https://www.youtube.com/@example", niche: "Music" },
+  "other-online-profiles": { platform: "LinkedIn", purpose: "Design hiring" },
+  "gaming-esports": { title: "Valorant", listingType: "Team" },
+  "art-creative-work": { discipline: "Illustration" },
+  "music-entertainment": { listingType: "Podcast", genre: "Interviews" },
+  "skills-portfolios": { profession: "Designer" },
+};
+
+describe("directory catalogue", () => {
+  it("publishes exactly the ten launch categories", () => {
+    expect(CATALOGUE.map((item) => item.slug)).toEqual([...ACTIVE_CATEGORY_SLUGS]);
+    expect(new Set(CATALOGUE.map((item) => item.fieldSet))).toEqual(new Set(ACTIVE_CATEGORY_SLUGS));
   });
 
-  it("keeps only the fields for the chosen set and rejects a fake payment status", () => {
-    expect(sanitizeDetails("vehicle", { make: "Honda", model: "City", year: "2020", paid: "true" })).toEqual({
-      make: "Honda",
-      model: "City",
-      year: "2020",
-    });
-    expect(() => sanitizeDetails("instagram", {})).toThrow(/handle/i);
+  it("validates each category and drops unknown fields", () => {
+    for (const slug of ACTIVE_CATEGORY_SLUGS) {
+      const clean = sanitizeDetails(slug, { ...sample[slug], password: "nope", rankAmount: "999" });
+      expect(clean.password).toBeUndefined();
+      expect(clean.rankAmount).toBeUndefined();
+      expect(clean.country).toBe("India");
+      expect(fieldsFor(slug).filter((field) => field.required).every((field) => clean[field.key])).toBe(true);
+    }
+  });
+
+  it("rejects a retired category and a missing required field", () => {
+    expect(() => sanitizeDetails("saas", sample["websites-saas"])).toThrow(/not open/);
+    expect(() => sanitizeDetails("instagram-pages", { niche: "Design" })).toThrow(/instagram/i);
+    expect(() => sanitizeDetails("gaming-esports", { title: "Casino bets", listingType: "Gaming website" })).toThrow(/gambling/i);
+    expect(RETIRED_CATEGORY_SLUGS).toContain("saas");
+    expect(CATEGORY_MIGRATION.saas.slug).toBe("websites-saas");
+    expect(CATEGORY_MIGRATION.media.slug).toBe("music-entertainment");
+    expect(CATEGORY_MIGRATION["developer-tools"]).toBeUndefined();
   });
 
   it("strips search wildcards", () => {

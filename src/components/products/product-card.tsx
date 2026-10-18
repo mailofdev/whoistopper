@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/primitives";
-import { formatInrFromPaise } from "@/lib/money";
 import type { ProductCardModel } from "@/types/domain";
 
 export function ProductMark({ name }: { name: string }) {
@@ -17,18 +16,11 @@ export function ProductMark({ name }: { name: string }) {
   );
 }
 
-export function ProductCard({ product, showRank = false }: { product: ProductCardModel; showRank?: boolean }) {
+export function ProductCard({ product }: { product: ProductCardModel; showRank?: boolean }) {
   return (
     <article className="glass rounded-3xl p-4">
       <div className="flex gap-3">
-        {showRank && product.rank ? (
-          <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-brand text-lg font-semibold text-on-brand">
-            <span className="sr-only">Rank </span>
-            {product.rank}
-          </span>
-        ) : (
-          <ProductMark name={product.name} />
-        )}
+        <ProductMark name={product.name} />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="truncate text-base font-semibold text-navy">
@@ -39,14 +31,11 @@ export function ProductCard({ product, showRank = false }: { product: ProductCar
           <p className="mt-1 line-clamp-2 text-sm leading-6 text-secondary">{product.shortDescription}</p>
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <Badge tone={product.placement === "paid" ? "paid" : "free"}>
-              {product.placement === "paid" ? "Paid placement" : "Free listing"}
+              {product.placement === "paid" ? "Advertisement" : "Organic listing"}
             </Badge>
             <Link className="text-xs font-medium text-secondary hover:text-navy" href={`/categories/${product.categorySlug}`}>
               {product.categoryName}
             </Link>
-            {product.placement === "paid" && product.amountPaise ? (
-              <span className="text-xs font-semibold text-navy">{formatInrFromPaise(product.amountPaise)}</span>
-            ) : null}
           </div>
         </div>
       </div>

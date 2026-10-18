@@ -5,8 +5,8 @@ import { Skeleton } from "@/components/ui/primitives";
 import { pageMetadata } from "@/lib/metadata";
 
 export const metadata = pageMetadata(
-  "Today's leaderboard",
-  "Today's paid ranks reset at 00:00 IST. Yesterday's amounts stay in history and do not carry over.",
+  "Today's featured ads",
+  "Fixed-price advertisements whose 24-hour campaign is currently running. Times use Asia/Kolkata.",
   "/leaderboard/today",
 );
 

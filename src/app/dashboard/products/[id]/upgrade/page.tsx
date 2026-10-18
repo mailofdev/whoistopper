@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { requireUser } from "@/features/auth/session";
 import { UpgradeForm } from "@/features/payments/upgrade-form";
+import { listAdPackages } from "@/features/payments/packages";
 import { PageHeader } from "@/components/ui/primitives";
 import { getServices } from "@/lib/services";
 
@@ -11,8 +12,8 @@ export default async function UpgradePage({ params }: { params: Promise<{ id: st
   if (!product || product.status !== "approved" || !product.ownershipVerified) notFound();
   return (
     <>
-      <PageHeader title={`Upgrade ${product.name}`} description="The amount is stored on the server. A preview is not a reserved rank." />
-      <UpgradeForm productId={product.id} />
+      <PageHeader title={`Advertise ${product.name}`} description="Packages have a fixed server price and a fixed duration. Paying more does not buy a higher place." />
+      <UpgradeForm productId={product.id} packages={await listAdPackages()} />
     </>
   );
 }

@@ -29,7 +29,8 @@ describe("payment integrity", () => {
       currency: "INR",
     };
     const first = decideProviderEvent(order, event, new Set(), "2026-10-15T00:00:00.000Z");
-    expect(first.allocateRank).toBe(true);
+    expect(first.allocateRank).toBe(false);
+    expect(first.status).toBe("refund_pending");
     expect(first.ledger?.entryType).toBe("charge");
     const second = decideProviderEvent(
       { ...order, status: "paid", providerPaymentId: "pay_1" },

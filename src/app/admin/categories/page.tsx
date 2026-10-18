@@ -54,7 +54,7 @@ function CategoryFields({ category }: { category?: Category }) {
       <input className="h-11 rounded-lg border border-line px-3" name="sortOrder" type="number" defaultValue={category?.sortOrder ?? 0} aria-label="Sort order" />
       <input className="h-11 rounded-lg border border-line px-3" name="groupSort" type="number" defaultValue={category?.groupSort ?? 1} aria-label="Group sort" />
       <label className="text-sm">Field set
-        <select className="mt-1 h-11 w-full rounded-lg border border-line px-3" name="fieldSet" defaultValue={category?.fieldSet ?? "website"} aria-label="Field set">
+        <select className="mt-1 h-11 w-full rounded-lg border border-line px-3" name="fieldSet" defaultValue={category?.fieldSet ?? "websites-saas"} aria-label="Field set">
           {fieldSets.map((set) => <option key={set} value={set}>{set}</option>)}
         </select>
       </label>

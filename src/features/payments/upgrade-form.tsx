@@ -1,67 +1,44 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { createUpgradeAction, previewUpgradeAction } from "@/features/payments/actions";
+import { createUpgradeAction } from "@/features/payments/actions";
 import { formatInrFromPaise } from "@/lib/money";
-import { upgradeSchema } from "@/lib/validation/schemas";
-import { Alert, Button, Field, SelectInput, TextInput } from "@/components/ui/primitives";
-import type { UpgradePreview } from "@/types/domain";
+import { Alert, Button, Field, SelectInput } from "@/components/ui/primitives";
+import type { AdPackageDefinition } from "@/config/packages";
 
-export function UpgradeForm({ productId }: { productId: string }) {
+export function UpgradeForm({ productId, packages }: { productId: string; packages: AdPackageDefinition[] }) {
   const router = useRouter();
-  const [idempotencyKey] = useState(() => crypto.randomUUID());
   const [error, setError] = useState("");
-  const [preview, setPreview] = useState<UpgradePreview | null>(null);
-  const form = useForm({
-    resolver: zodResolver(upgradeSchema),
-    defaultValues: { productId, scope: "all_time" as const, amountRupees: 99 },
-  });
+  const [packageSlug, setPackageSlug] = useState<string>(packages[0]?.slug ?? "");
+  const [pending, setPending] = useState(false);
+  const selected = packages.find((item) => item.slug === packageSlug) ?? packages[0];
+  if (!selected) return <Alert>No advertising packages are available.</Alert>;
 
   return (
     <form
       className="space-y-4"
-      onSubmit={form.handleSubmit(async (values) => {
+      onSubmit={async (event) => {
+        event.preventDefault();
+        setPending(true);
         setError("");
-        const result = await createUpgradeAction({ ...values, idempotencyKey });
+        const result = await createUpgradeAction({ productId, packageSlug: selected.slug, clientPricePaise: selected.pricePaise });
+        setPending(false);
         if (!result.ok) setError(result.error);
-        else router.push(`/payments/sandbox/${result.order.id}`);
-      })}
+        else router.push(result.href);
+      }}
     >
       {error ? <Alert>{error}</Alert> : null}
-      {preview ? (
-        <Alert tone="info">
-          Preview only: {formatInrFromPaise(preview.amountPaise)} would currently sit at #{preview.quotedRank}. {preview.message} The final rank is assigned after payment is verified.
-        </Alert>
-      ) : null}
-      <Field label="Board" error={form.formState.errors.scope?.message}>
-        <SelectInput {...form.register("scope")}>
-          <option value="all_time">All-time</option>
-          <option value="daily">Today (IST)</option>
-          <option value="category">This category</option>
+      <Field label="Package" hint="The charged price is the server price, not a number typed here.">
+        <SelectInput value={selected.slug} onChange={(event) => setPackageSlug(event.target.value)}>
+          {packages.map((item) => <option key={item.slug} value={item.slug}>{item.name} · {formatInrFromPaise(item.pricePaise)}</option>)}
         </SelectInput>
       </Field>
-      <Field label="Amount (INR)" hint="New ranks start at ₹99. Raising a rank must increase the amount by at least ₹10." error={form.formState.errors.amountRupees?.message}>
-        <TextInput type="number" min={1} step="1" {...form.register("amountRupees", { valueAsNumber: true })} />
-      </Field>
-      <div className="flex gap-3">
-        <Button
-          type="button"
-          variant="secondary"
-          onClick={async () => {
-            setError("");
-            const values = form.getValues();
-            const result = await previewUpgradeAction(values);
-            if (!result.ok) setError(result.error);
-            else setPreview(result.preview);
-          }}
-        >
-          Preview rank
-        </Button>
-        <Button type="submit" disabled={form.formState.isSubmitting}>Continue to payment</Button>
-      </div>
+      <p className="text-sm leading-6 text-secondary">{selected.description}</p>
+      <p className="text-sm leading-6 text-secondary">
+        The confirmed start and end are stored in Asia/Kolkata time when payment is verified. This purchase does not change another advertiser&apos;s place.
+      </p>
+      <Button type="submit" disabled={pending}>{pending ? "Opening checkout…" : "Continue to payment"}</Button>
     </form>
   );
 }

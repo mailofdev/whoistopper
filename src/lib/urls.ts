@@ -1,5 +1,3 @@
-import { isIP } from "node:net";
-
 const TRACKING_PARAM = /^(utm_|fbclid$|gclid$|mc_eid$|igshid$)/i;
 const SHORTENERS = new Set([
   "bit.ly",
@@ -23,11 +21,17 @@ export function slugify(value: string): string {
   return slug || "product";
 }
 
+/** Browser-safe IP check. `node:net` cannot be imported from client components. */
+function isIpHost(host: string): boolean {
+  if (/^(?:\d{1,3}\.){3}\d{1,3}$/.test(host)) return true;
+  return host.includes(":") && /^[0-9a-f:]+$/i.test(host);
+}
+
 export function isBlockedHostname(hostname: string): boolean {
   const host = hostname.toLowerCase().replace(/\.$/, "");
   if (!host || !host.includes(".")) return true;
   if (host === "localhost" || host.endsWith(".local") || host.endsWith(".internal")) return true;
-  if (isIP(host)) return true;
+  if (isIpHost(host)) return true;
   if (SHORTENERS.has(host)) return true;
   return false;
 }

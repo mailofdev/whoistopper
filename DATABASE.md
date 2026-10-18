@@ -15,7 +15,7 @@ Migrations in `supabase/migrations` are the schema source of truth. `supabase/se
 
 ## Ranking consistency
 
-Active placements use a partial unique index on `(product_id, scope_type, scope_key) where status = 'active'`. `apply_provider_event` takes `pg_advisory_xact_lock` for the scope, checks amount and currency, writes the ledger once, and inserts or updates the placement. The order is `amount_paise desc, confirmed_at asc, product_id asc`.
+`ad_packages` stores the fixed price and duration. `ad_campaigns` stores the activation window. `apply_provider_event` checks the provider amount against the order, writes one ledger charge, and creates one campaign per order. Public directory order is newest approval, then name. Shared advertisements are ordered by `starts_at`, not by amount. Historical `payment_orders` and `ledger_entries` are kept. New `ranking_upgrade` captures are marked for refund and do not move a listing.
 
 Daily scope keys created for signed-in upgrades are `to_char(now() at time zone 'Asia/Kolkata', 'YYYY-MM-DD')`, so a client cannot pre-buy tomorrow. Guest bids use the same IST date on the server. Older UTC keys stay as history. `snapshot_daily_board` records a finished IST day. Removing or rejecting a listing supersedes its active placements. Payment rows stay.
 

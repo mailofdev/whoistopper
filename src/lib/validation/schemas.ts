@@ -38,8 +38,8 @@ export const passwordSchema = z.object({
 export const productSchema = z.object({
   name: z.string().trim().min(2).max(80),
   websiteUrl: z.string().trim().min(4).max(300),
-  shortDescription: z.string().trim().min(20).max(160),
-  fullDescription: z.string().trim().min(40).max(5000),
+  shortDescription: z.string().trim().min(12).max(160),
+  fullDescription: z.string().trim().min(12).max(5000),
   categorySlug: z.string().trim().min(2).max(40),
   tags: z.array(z.string().trim().min(2).max(24)).max(8),
   creatorName: z.string().trim().min(2).max(80),
@@ -53,6 +53,7 @@ export const productSchema = z.object({
     })
     .default({}),
   submit: z.boolean(),
+  details: z.record(z.string().max(500)).optional(),
 });
 
 export const contactSchema = z.object({
@@ -69,8 +70,8 @@ export const reportSchema = z.object({
 
 export const upgradeSchema = z.object({
   productId: z.string().uuid(),
-  scope: z.enum(["all_time", "daily", "category"]),
-  amountRupees: z.number().positive().max(1_000_000),
+  packageSlug: z.enum(["daily-featured", "weekly-featured", "weekly-category-sponsor"]),
+  clientPricePaise: z.number().int().positive().optional(),
 });
 
 export const profileSchema = z.object({
@@ -92,11 +93,9 @@ export const roleSchema = z.object({
 });
 
 export const settingsSchema = z.object({
-  minimumBidPaise: z.number().int().positive(),
-  minimumIncrementPaise: z.number().int().positive(),
-  maxBidPaise: z.number().int().positive(),
-  sponsoredWeeklyPricePaise: z.number().int().positive(),
-  sponsoredMaxActive: z.number().int().min(1).max(12),
+  dailyFeaturedPricePaise: z.number().int().positive(),
+  weeklyFeaturedPricePaise: z.number().int().positive(),
+  categorySponsorPricePaise: z.number().int().positive(),
   holdNewListingsForReview: z.boolean(),
 });
 

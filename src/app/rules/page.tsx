@@ -3,7 +3,7 @@ import { pageMetadata } from "@/lib/metadata";
 
 export const metadata = pageMetadata(
   "Rules",
-  "How RankPush orders a paid public leaderboard. Rank is the amount you pay in INR. It is a labelled advertisement, not an auction.",
+  "How RankPush labels advertisements, orders organic listings, and prices fixed packages in INR.",
   "/rules",
 );
 

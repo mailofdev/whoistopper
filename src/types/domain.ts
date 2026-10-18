@@ -10,8 +10,8 @@ export const PRODUCT_STATUSES = [
 
 export type ProductStatus = (typeof PRODUCT_STATUSES)[number];
 export type UserRole = "user" | "admin" | "super_admin";
-export type OrderStatus = "pending" | "paid" | "failed" | "cancelled" | "refunded";
-export type PaymentPurpose = "ranking_upgrade" | "sponsored_placement";
+export type OrderStatus = "pending" | "paid" | "failed" | "cancelled" | "refund_pending" | "refunded";
+export type PaymentPurpose = "ranking_upgrade" | "sponsored_placement" | "advertising_package";
 export type PaymentProvider = "razorpay" | "cashfree" | "sandbox";
 export type ScopeType = "all_time" | "daily" | "category";
 export type Fulfillment = "pending" | "fulfilled" | "needs_refund" | "not_applicable";
@@ -103,6 +103,7 @@ export type LeaderboardScope =
 
 export interface LeaderboardEntry extends ProductCardModel {
   confirmedAt: string | null;
+  campaignEndsAt: string | null;
   websiteUrl: string;
   logoUrl: string | null;
   clicks: number;
@@ -139,6 +140,7 @@ export interface ProductInput {
   socialLinks: SocialLinks;
   logoUrl?: string;
   submit: boolean;
+  details?: Record<string, string>;
 }
 
 export interface OrderDetail {
@@ -247,11 +249,9 @@ export interface AuditEntry {
 }
 
 export interface PlatformSettings {
-  minimumBidPaise: number;
-  minimumIncrementPaise: number;
-  maxBidPaise: number;
-  sponsoredWeeklyPricePaise: number;
-  sponsoredMaxActive: number;
+  dailyFeaturedPricePaise: number;
+  weeklyFeaturedPricePaise: number;
+  categorySponsorPricePaise: number;
   holdNewListingsForReview: boolean;
 }
 

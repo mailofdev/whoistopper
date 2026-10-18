@@ -7,7 +7,9 @@ export interface EventDecision {
   duplicate: boolean;
   ignored: boolean;
   allocateRank: boolean;
+  scheduleCampaign: boolean;
   reverseRank: boolean;
+  reverseCampaign: boolean;
   providerPaymentId: string | null;
   paidAt: string | null;
   ledger: Omit<LedgerEntry, "id" | "createdAt"> | null;
@@ -25,7 +27,9 @@ export function decideProviderEvent(
     duplicate: false,
     ignored: false,
     allocateRank: false,
+    scheduleCampaign: false,
     reverseRank: false,
+    reverseCampaign: false,
     providerPaymentId: order.providerPaymentId,
     paidAt: null as string | null,
     ledger: null as EventDecision["ledger"],
@@ -42,7 +46,7 @@ export function decideProviderEvent(
     if (!event.providerPaymentId) {
       throw new PaymentIntegrityError("Captured payment is missing a provider payment id.");
     }
-    if (order.status === "paid" || order.status === "refunded") {
+    if (order.status === "paid" || order.status === "refunded" || order.status === "refund_pending") {
       if (order.providerPaymentId && order.providerPaymentId !== event.providerPaymentId) {
         throw new PaymentIntegrityError("This order was already paid with a different payment.");
       }
@@ -51,11 +55,13 @@ export function decideProviderEvent(
     if (order.status !== "pending") {
       throw new PaymentIntegrityError(`A ${order.status} order cannot be captured.`);
     }
+    const retiredRank = order.purpose === "ranking_upgrade";
     return {
       ...base,
-      status: "paid",
-      fulfillment: order.purpose === "ranking_upgrade" || order.purpose === "sponsored_placement" ? "pending" : "not_applicable",
-      allocateRank: order.purpose === "ranking_upgrade",
+      status: retiredRank ? "refund_pending" : "paid",
+      fulfillment: retiredRank ? "needs_refund" : order.purpose === "advertising_package" || order.purpose === "sponsored_placement" ? "pending" : "not_applicable",
+      allocateRank: false,
+      scheduleCampaign: order.purpose === "advertising_package",
       providerPaymentId: event.providerPaymentId,
       paidAt: nowIso,
       ledger: {
@@ -69,7 +75,7 @@ export function decideProviderEvent(
   }
 
   if (event.type === "payment.failed") {
-    if (order.status === "paid" || order.status === "refunded") {
+    if (order.status === "paid" || order.status === "refunded" || order.status === "refund_pending") {
       return { ...base, ignored: true };
     }
     if (order.status === "failed") return { ...base, duplicate: true };
@@ -84,7 +90,7 @@ export function decideProviderEvent(
   }
 
   if (order.status === "refunded") return { ...base, duplicate: true };
-  if (order.status !== "paid") {
+  if (order.status !== "paid" && order.status !== "refund_pending") {
     throw new PaymentIntegrityError("A refund arrived before a verified payment.");
   }
   if (event.amountPaise !== order.amountPaise) {
@@ -94,7 +100,8 @@ export function decideProviderEvent(
     ...base,
     status: "refunded",
     fulfillment: "not_applicable",
-    reverseRank: order.purpose === "ranking_upgrade",
+    reverseRank: false,
+    reverseCampaign: order.purpose === "advertising_package" || order.purpose === "ranking_upgrade",
     ledger: {
       orderId: order.id,
       entryType: "refund",

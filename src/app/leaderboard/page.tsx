@@ -11,8 +11,8 @@ import { getServices } from "@/lib/services";
 import type { Category, LeaderboardEntry, LeaderboardScope } from "@/types/domain";
 
 export const metadata = pageMetadata(
-  "All-time leaderboard",
-  "Paid positions ordered by verified INR amount. A rank is the payment, not a review.",
+  "Directory",
+  "Approved listings in newest-approval order, with fixed-price advertisements labelled separately.",
   "/leaderboard",
 );
 
@@ -67,7 +67,7 @@ export async function Board({
     }
   } catch (error) {
     notice = error instanceof ConfigurationError
-      ? "The directory is not connected to a database yet, so the board is empty. A rank is saved only after a verified payment."
+      ? "The directory is not connected to a database yet, so this page is empty."
       : toPublicError(error).message;
   }
   return (

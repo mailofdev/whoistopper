@@ -4,7 +4,7 @@ import { SiteSearch } from "@/components/layout/site-search";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 
 const links = [
-  { href: "/leaderboard/today", label: "Daily" },
+  { href: "/leaderboard/today", label: "Today's ads" },
   { href: "/categories", label: "Categories" },
   { href: "/about", label: "About" },
   { href: "/rules", label: "Rules" },

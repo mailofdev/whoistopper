@@ -1,9 +1,8 @@
 import { lookup } from "node:dns/promises";
-import { FIELD_SETS } from "@/config/catalogue";
-import { assignRanks, istDayKey, utcDayKey } from "@/features/leaderboards/engine";
-import { openGatewayOrder } from "@/features/payments/gateway";
+import { ACTIVE_CATEGORY_SLUGS, isActiveFieldSet, RETIRED_CATEGORY_SLUGS, sanitizeDetails } from "@/config/catalogue";
+import { PACKAGE_DEFAULTS } from "@/config/packages";
+import { utcDayKey } from "@/features/leaderboards/engine";
 import { findReconciliationIssues } from "@/features/payments/reconcile";
-import { resolvePaymentRuntime } from "@/features/payments/runtime";
 import { readServerEnv } from "@/config/env";
 import { site } from "@/config/site";
 import { AppError, ConfigurationError } from "@/lib/errors";
@@ -13,7 +12,6 @@ import {
   canEditProduct,
   canManageRoles,
   canModerate,
-  canUpgradeProduct,
   canViewPrivateAnalytics,
   isAdmin,
 } from "@/lib/security/authorization";
@@ -90,7 +88,7 @@ async function replaceTags(productId: string, tags: string[]) {
 
 function categoryOf(value: { slug?: string; name?: string; field_set?: string } | { slug?: string; name?: string; field_set?: string }[] | null) {
   const row = Array.isArray(value) ? value[0] : value;
-  return { slug: row?.slug ?? "", name: row?.name ?? "Uncategorised", fieldSet: row?.field_set ?? "website" };
+  return { slug: row?.slug ?? "", name: row?.name ?? "Uncategorised", fieldSet: row?.field_set ?? "" };
 }
 
 function mapCategory(row: { id: string; slug: string; name: string; description: string; sort_order: number; is_active: boolean; group_slug?: string | null; group_name?: string | null; group_sort?: number | null; field_set?: string | null }) {
@@ -104,7 +102,7 @@ function mapCategory(row: { id: string; slug: string; name: string; description:
     groupSlug: row.group_slug ?? "digital-presence",
     groupName: row.group_name ?? "Digital Presence",
     groupSort: row.group_sort ?? 1,
-    fieldSet: row.field_set ?? "website",
+    fieldSet: row.field_set ?? "",
   };
 }
 
@@ -195,20 +193,6 @@ function detailFrom(row: Record<string, unknown>): ProductDetail {
 const productSelect = "id, slug, name, website_url, normalized_url, short_description, full_description, logo_url, category_id, owner_id, owner_username, owner_display_name, creator_name, social_links, details, status, rejection_reason, ownership_verified, created_at, updated_at, approved_at, categories(slug, name, field_set), product_tags(tags(slug))";
 
 async function withRanks(detail: ProductDetail): Promise<ProductDetail> {
-  const client = await anon();
-  const today = istDayKey(new Date());
-  for (const scope of [
-    { type: "all_time" as const, key: "all_time", rank: "allTimeRank" as const, amount: "allTimeAmountPaise" as const },
-    { type: "daily" as const, key: today, rank: "todayRank" as const, amount: "todayAmountPaise" as const },
-  ]) {
-    const { data } = await client.from("ranking_placements").select("id, product_id, amount_paise, confirmed_at").eq("scope_type", scope.type).eq("scope_key", scope.key).eq("status", "active");
-    const ranked = assignRanks((data ?? []).map((row) => ({ id: row.id, productId: row.product_id, amountPaise: row.amount_paise, confirmedAt: row.confirmed_at })));
-    const match = ranked.find((row) => row.productId === detail.id);
-    if (match) {
-      detail[scope.rank] = match.rank;
-      detail[scope.amount] = match.amountPaise;
-    }
-  }
   return detail;
 }
 
@@ -240,15 +224,16 @@ function mapOrder(row: Record<string, unknown>): OrderDetail {
 async function settingsFrom(client: Awaited<ReturnType<typeof anon>>): Promise<PlatformSettings> {
   const { data, error } = await client.from("platform_settings").select("key, value");
   fail(error);
-  const ranking = (data?.find((row) => row.key === "ranking")?.value ?? {}) as Record<string, number>;
-  const sponsored = (data?.find((row) => row.key === "sponsored")?.value ?? {}) as Record<string, number>;
   const moderation = (data?.find((row) => row.key === "moderation")?.value ?? {}) as { holdNewListingsForReview?: boolean };
+  const packages = await client.from("ad_packages").select("slug, price_paise").eq("is_active", true);
+  const price = (slug: string, fallback: number) => {
+    const row = packages.data?.find((item) => item.slug === slug);
+    return row ? Number(row.price_paise) : fallback;
+  };
   return {
-    minimumBidPaise: ranking.minimumBidPaise ?? 9900,
-    minimumIncrementPaise: ranking.minimumIncrementPaise ?? 1000,
-    maxBidPaise: ranking.maxBidPaise ?? 100_000_000,
-    sponsoredWeeklyPricePaise: sponsored.weeklyPricePaise ?? 49900,
-    sponsoredMaxActive: sponsored.maxActive ?? 3,
+    dailyFeaturedPricePaise: price("daily-featured", PACKAGE_DEFAULTS[0].pricePaise),
+    weeklyFeaturedPricePaise: price("weekly-featured", PACKAGE_DEFAULTS[1].pricePaise),
+    categorySponsorPricePaise: price("weekly-category-sponsor", PACKAGE_DEFAULTS[2].pricePaise),
     holdNewListingsForReview: moderation.holdNewListingsForReview ?? true,
   };
 }
@@ -257,9 +242,12 @@ export const supabaseServices: AppServices = {
   categories: {
     async list() {
       const client = await anon();
-      const { data, error } = await client.from("categories").select("id, slug, name, description, sort_order, is_active, group_slug, group_name, group_sort, field_set").eq("is_active", true).order("group_sort").order("sort_order");
+      const { data, error } = await client.from("categories").select("id, slug, name, description, sort_order, is_active, group_slug, group_name, group_sort, field_set").eq("is_active", true).order("sort_order");
       fail(error);
-      return (data ?? []).map((row) => mapCategory(row));
+      return (data ?? []).map((row) => mapCategory(row)).flatMap((category) => {
+        if (!(ACTIVE_CATEGORY_SLUGS as readonly string[]).includes(category.slug)) return [];
+        return [{ ...category, fieldSet: isActiveFieldSet(category.fieldSet) ? category.fieldSet : category.slug }];
+      });
     },
     async listAll() {
       const client = await server();
@@ -274,16 +262,21 @@ export const supabaseServices: AppServices = {
     async save(actor, input) {
       if (!canModerate(actor)) throw new AppError("You cannot edit categories.", "forbidden", 403);
       const client = await server();
+      const slug = slugify(input.slug);
+      if ((RETIRED_CATEGORY_SLUGS as readonly string[]).includes(slug)) {
+        throw new AppError("That category is retired and cannot be activated.", "retired_category", 400);
+      }
+      if (!isActiveFieldSet(input.fieldSet)) throw new AppError("Choose one of the open category forms.", "invalid_category", 400);
       const payload = {
-        slug: slugify(input.slug),
+        slug,
         name: input.name,
         description: input.description,
         sort_order: input.sortOrder,
         is_active: input.isActive,
-        group_slug: slugify(input.groupSlug),
-        group_name: input.groupName,
-        group_sort: input.groupSort,
-        field_set: FIELD_SETS[input.fieldSet] ? input.fieldSet : "website",
+        group_slug: "directory",
+        group_name: "Directory",
+        group_sort: 1,
+        field_set: input.fieldSet,
       };
       const query = input.id ? client.from("categories").update(payload).eq("id", input.id) : client.from("categories").insert(payload);
       const { error } = await query;
@@ -353,9 +346,11 @@ export const supabaseServices: AppServices = {
     },
     async create(user, input) {
       const client = await server();
-      const { data: category, error: categoryError } = await client.from("categories").select("id").eq("slug", input.categorySlug).eq("is_active", true).maybeSingle();
+      const { data: category, error: categoryError } = await client.from("categories").select("id, field_set").eq("slug", input.categorySlug).eq("is_active", true).maybeSingle();
       fail(categoryError);
-      if (!category) throw new AppError("Choose a category.", "invalid_category", 400);
+      if (!category || !isActiveFieldSet(String(category.field_set))) throw new AppError("Choose a category.", "invalid_category", 400);
+      const details = sanitizeDetails(String(category.field_set), input.details ?? {});
+      details.authorization = "confirmed";
       const existing = await client.from("products").select("id, owner_id").eq("normalized_url", input.websiteUrl).maybeSingle();
       fail(existing.error);
       if (existing.data) {
@@ -383,6 +378,7 @@ export const supabaseServices: AppServices = {
         owner_display_name: user.displayName,
         creator_name: input.creatorName,
         social_links: input.socialLinks,
+        details,
         status: input.submit ? "pending_verification" : "draft",
       }).select(productSelect).single();
       fail(inserted.error);
@@ -398,8 +394,10 @@ export const supabaseServices: AppServices = {
         throw new AppError("You cannot edit this listing.", "forbidden", 403);
       }
       const client = await server();
-      const { data: category } = await client.from("categories").select("id").eq("slug", input.categorySlug).maybeSingle();
-      if (!category) throw new AppError("Choose a category.", "invalid_category", 400);
+      const { data: category } = await client.from("categories").select("id, field_set, is_active").eq("slug", input.categorySlug).maybeSingle();
+      if (!category || !category.is_active || !isActiveFieldSet(String(category.field_set))) throw new AppError("Choose a category.", "invalid_category", 400);
+      const details = sanitizeDetails(String(category.field_set), input.details ?? {});
+      details.authorization = "confirmed";
       const urlChanged = current.normalizedUrl !== input.websiteUrl;
       const { error } = await client.from("products").update({
         name: input.name,
@@ -411,6 +409,7 @@ export const supabaseServices: AppServices = {
         category_id: category.id,
         creator_name: input.creatorName,
         social_links: input.socialLinks,
+        details,
         ownership_verified: urlChanged ? false : current.ownershipVerified,
         status: urlChanged && current.status === "approved" ? "pending_review" : input.submit && (current.status === "draft" || current.status === "rejected") ? "pending_verification" : current.status,
       }).eq("id", id);
@@ -437,9 +436,17 @@ export const supabaseServices: AppServices = {
         approved_at: status === "approved" ? new Date().toISOString() : undefined,
       }).eq("id", productId);
       fail(error);
+      if (status === "approved") {
+        try {
+          await admin().rpc("activate_scheduled_campaigns", { p_product_id: productId });
+        } catch (activateError) {
+          log("error", "campaign.activate", { error: activateError instanceof Error ? activateError.message : "unknown" });
+        }
+      }
       if (status === "removed" || status === "suspended" || status === "rejected") {
         try {
           await admin().from("ranking_placements").update({ status: "superseded" }).eq("product_id", productId).eq("status", "active");
+          await admin().from("ad_campaigns").update({ status: "cancelled" }).eq("product_id", productId).in("status", ["active", "scheduled"]);
         } catch (retireError) {
           log("error", "placement.retire", { error: retireError instanceof Error ? retireError.message : "unknown" });
         }
@@ -468,12 +475,13 @@ export const supabaseServices: AppServices = {
         categoryName: String(entry.category_name),
         categorySlug: String(entry.category_slug),
         tags: (entry.tags as string[]) ?? [],
-        placement: entry.placement === "paid" ? "paid" : "free",
-        rank: (entry.rank as number | null) ?? null,
-        amountPaise: (entry.amount_paise as number | null) ?? null,
+        placement: entry.placement === "sponsored" ? "paid" : "free",
+        rank: null,
+        amountPaise: null,
         ownershipVerified: Boolean(entry.ownership_verified),
         approvedAt: (entry.approved_at as string | null) ?? null,
         confirmedAt: (entry.confirmed_at as string | null) ?? null,
+        campaignEndsAt: (entry.ends_at as string | null) ?? null,
         websiteUrl: "",
         logoUrl: null,
         clicks: 0,
@@ -497,11 +505,13 @@ export const supabaseServices: AppServices = {
         }
       }
       const category = scope.type === "category" ? (await supabaseServices.categories.list()).find((item) => item.id === scope.key) : null;
-      const title = scope.type === "all_time" ? "All-time leaderboard" : scope.type === "daily" ? "Today's leaderboard" : `${category?.name ?? "Category"} leaderboard`;
+      const title = scope.type === "all_time" ? "Permanent directory" : scope.type === "daily" ? "Today's featured ads" : `${category?.name ?? "Category"} directory`;
       return {
         scope,
         title,
-        description: "Paid positions are ordered by the verified amount in INR. An earlier confirmation wins a tie, then the smaller listing id. Paid placement is not a quality score or an ownership check. Free listings follow paid rows. Daily boards use the Asia/Kolkata date and start empty at 00:00 IST.",
+        description: scope.type === "daily"
+          ? "Today's Featured Ads are fixed-price advertisements whose campaign is currently inside its disclosed window. Asia/Kolkata is used to display those times. A higher payment does not move an advertisement ahead of one that started earlier."
+          : "Organic listings are ordered by newest approval, then name. Featured advertisements are labelled separately and are not a quality score.",
         entries,
         page,
         pageSize,
@@ -509,46 +519,13 @@ export const supabaseServices: AppServices = {
         paidCount: payload.paidCount ?? 0,
       };
     },
-    async preview(user, productId, scope, amountPaise) {
-      const product = await supabaseServices.products.getManageable(user, productId);
-      if (!product || !canUpgradeProduct(user, product)) throw new AppError("Verify ownership of an approved listing before ranking it.", "forbidden", 403);
-      const { minimumAmountForTarget, previewRank } = await import("@/features/leaderboards/engine");
-      const client = await anon();
-      const key = scope === "daily" ? istDayKey(new Date()) : scope === "category" ? product.categoryId : "all_time";
-      const { data } = await client.from("ranking_placements").select("id, product_id, amount_paise, confirmed_at").eq("scope_type", scope).eq("scope_key", key).eq("status", "active");
-      const placements = (data ?? []).map((row) => ({ id: row.id, productId: row.product_id, amountPaise: row.amount_paise, confirmedAt: row.confirmed_at }));
-      const rules = await settingsFrom(client);
-      const minimumPaise = minimumAmountForTarget({ placements, bidderProductId: productId, rules });
-      if (!Number.isInteger(amountPaise) || amountPaise < minimumPaise) throw new AppError("Enter an amount at or above the current minimum.", "invalid_amount", 400);
-      const quotedRank = previewRank({ placements, bidderProductId: productId, amountPaise, confirmedAt: new Date().toISOString() });
-      return { minimumPaise, quotedRank, amountPaise, message: `If payment were confirmed now, this amount would place the listing at rank ${quotedRank}. The rank is not reserved.` };
+    async preview() {
+      throw new AppError("Rank previews are closed. Advertising packages use a fixed server price.", "ranking_closed", 410);
     },
   },
   payments: {
-    async createRankingOrder(user, productId, scope, amountPaise, idempotencyKey) {
-      const preview = await supabaseServices.leaderboards.preview(user, productId, scope, amountPaise);
-      const runtime = resolvePaymentRuntime();
-      if (runtime.mode === "unconfigured") throw new AppError("Payments are not configured for this environment.", "payments_unconfigured", 503);
-      const client = await server();
-      const created = await client.rpc("create_ranking_order", {
-        p_product_id: productId,
-        p_scope: scope,
-        p_amount: amountPaise,
-        p_idempotency: idempotencyKey,
-        p_quoted_rank: preview.quotedRank,
-        p_provider: runtime.provider === "razorpay" ? "razorpay" : "sandbox",
-      });
-      fail(created.error);
-      const row = created.data as Record<string, unknown>;
-      if (!row.provider_order_id) {
-        const gateway = await openGatewayOrder({ receipt: String(row.id), amountPaise, notes: { productId, scope } });
-        const attached = await client.rpc("attach_provider_order", { p_order_id: row.id, p_provider_order_id: gateway.providerOrderId });
-        fail(attached.error);
-        row.provider_order_id = gateway.providerOrderId;
-        row.provider = gateway.provider;
-      }
-      const order = mapOrder(row);
-      return { ...order, publishableKeyId: runtime.mode === "live" ? runtime.keyId : null, sandbox: runtime.mode === "sandbox" };
+    async createRankingOrder() {
+      throw new AppError("Rank purchases are closed. Buy a fixed advertising package instead.", "ranking_closed", 410);
     },
     async cancel(user, orderId) {
       const client = await server();
@@ -855,8 +832,9 @@ export const supabaseServices: AppServices = {
       if (!canManageRoles(actor)) throw new AppError("Only a super administrator can change platform settings.", "forbidden", 403);
       const client = await server();
       const writes = [
-        client.from("platform_settings").update({ value: { minimumBidPaise: settings.minimumBidPaise, minimumIncrementPaise: settings.minimumIncrementPaise, maxBidPaise: settings.maxBidPaise }, updated_by: actor.id }).eq("key", "ranking"),
-        client.from("platform_settings").update({ value: { weeklyPricePaise: settings.sponsoredWeeklyPricePaise, maxActive: settings.sponsoredMaxActive }, updated_by: actor.id }).eq("key", "sponsored"),
+        client.from("ad_packages").update({ price_paise: settings.dailyFeaturedPricePaise, updated_at: new Date().toISOString() }).eq("slug", "daily-featured"),
+        client.from("ad_packages").update({ price_paise: settings.weeklyFeaturedPricePaise, updated_at: new Date().toISOString() }).eq("slug", "weekly-featured"),
+        client.from("ad_packages").update({ price_paise: settings.categorySponsorPricePaise, updated_at: new Date().toISOString() }).eq("slug", "weekly-category-sponsor"),
         client.from("platform_settings").update({ value: { holdNewListingsForReview: settings.holdNewListingsForReview }, updated_by: actor.id }).eq("key", "moderation"),
       ];
       for (const write of writes) fail((await write).error);

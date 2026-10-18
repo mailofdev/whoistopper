@@ -4,7 +4,7 @@ export const site = {
   shortName: "RankPush",
   domain: "rankpush.lol",
   description:
-    "Public leaderboard for digital presence, lifestyle, achievements, and creative work. Rank is the amount you pay in INR. A paid rank is a labelled advertisement, not an auction.",
+    "A public directory of websites, profiles, and other permitted destinations. Advertising packages have fixed prices in INR. An advertisement is not a rating or an endorsement.",
   locale: "en-IN",
   themeColor: "#D4145A",
   backgroundColor: "#FAF7F5",

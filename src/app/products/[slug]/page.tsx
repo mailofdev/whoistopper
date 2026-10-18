@@ -5,7 +5,6 @@ import { toPublicError } from "@/lib/errors";
 import { headers } from "next/headers";
 import { after } from "next/server";
 import { fieldsFor } from "@/config/catalogue";
-import { formatInrFromPaise } from "@/lib/money";
 import { pageMetadata } from "@/lib/metadata";
 import { getServices } from "@/lib/services";
 import { notFound } from "next/navigation";
@@ -74,12 +73,10 @@ async function ProductDetail({ params }: { params: Promise<{ slug: string }> }) 
             ) : null}
           </article>
           <Card>
-            <h2 className="text-lg font-semibold">Placement</h2>
-            <p className="mt-2 text-sm text-secondary">A paid rank is the confirmed amount. It is a labelled advertisement, not a rating or an endorsement.</p>
+            <h2 className="text-lg font-semibold">Listing</h2>
+            <p className="mt-2 text-sm text-secondary">This page is a directory entry. An active advertisement, when one is running, is labelled on the directory and is not a rating, review, or endorsement.</p>
             <dl className="mt-4 space-y-2 text-sm">
-              <div className="flex justify-between"><dt>All-time</dt><dd>{product.allTimeRank ? `#${product.allTimeRank} · ${formatInrFromPaise(product.allTimeAmountPaise ?? 0)}` : "Free listing"}</dd></div>
-              <div className="flex justify-between gap-3"><dt>Today (IST)</dt><dd>{product.todayRank ? `#${product.todayRank} · ${formatInrFromPaise(product.todayAmountPaise ?? 0)}` : "No amount today"}</dd></div>
-              <div className="flex justify-between gap-3"><dt>Payment</dt><dd>{product.allTimeAmountPaise || product.todayAmountPaise ? "Payment confirmed" : "No confirmed payment"}</dd></div>
+              <div className="flex justify-between gap-3"><dt>Directory</dt><dd>Organic listing</dd></div>
               <div className="flex justify-between gap-3"><dt>Ownership</dt><dd>{product.ownershipVerified ? "Verified" : "Not verified"}</dd></div>
             </dl>
             <a className="mt-5 inline-flex h-11 w-full items-center justify-center rounded-lg bg-brand text-sm font-semibold text-on-brand" href={`/out/${product.slug}`} target="_blank" rel="noopener noreferrer">Visit website</a>

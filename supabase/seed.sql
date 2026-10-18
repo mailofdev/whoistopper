@@ -1,23 +1,46 @@
--- Development seed for an empty Supabase project.
--- Categories match the mock catalogue so local switching stays predictable.
--- Do not insert fictional products into a production database.
+-- Idempotent catalogue seed. Re-running must not duplicate rows or reactivate retired categories.
+-- Package prices are inserted only when missing so an administrator change is kept.
 
-insert into public.categories (id, slug, name, description, sort_order, is_active, group_slug, group_name, group_sort, field_set)
+insert into public.categories (slug, name, description, sort_order, is_active, group_slug, group_name, group_sort, field_set)
 values
-  ('11111111-1111-4111-8111-111111111111', 'saas', 'SaaS', 'Software sold to Indian teams and businesses.', 1, true, 'earlier', 'Earlier catalogue', 90, 'website'),
-  ('22222222-2222-4222-8222-222222222222', 'developer-tools', 'Developer tools', 'Tools for people building software.', 2, true, 'earlier', 'Earlier catalogue', 90, 'website'),
-  ('33333333-3333-4333-8333-333333333333', 'fintech', 'Fintech', 'Money, invoices, and ledgers for Indian businesses.', 3, true, 'earlier', 'Earlier catalogue', 90, 'website'),
-  ('44444444-4444-4444-8444-444444444444', 'commerce', 'Commerce', 'Stores, catalogues, and D2C operations.', 4, true, 'earlier', 'Earlier catalogue', 90, 'website'),
-  ('55555555-5555-4555-8555-555555555555', 'education', 'Education', 'Learning products for students and tutors.', 5, true, 'earlier', 'Earlier catalogue', 90, 'website'),
-  ('66666666-6666-4666-8666-666666666666', 'health', 'Health', 'Clinics, wellness, and care coordination.', 6, true, 'earlier', 'Earlier catalogue', 90, 'website'),
-  ('77777777-7777-4777-8777-777777777777', 'climate', 'Climate', 'Energy, weather, and local environment tools.', 7, true, 'earlier', 'Earlier catalogue', 90, 'website'),
-  ('88888888-8888-4888-8888-888888888888', 'media', 'Media', 'Publishing and creative workflows.', 8, true, 'earlier', 'Earlier catalogue', 90, 'website')
+  ('websites-saas', 'Websites & SaaS', 'Public websites, web apps, and software products.', 1, true, 'directory', 'Directory', 1, 'websites-saas'),
+  ('business-startups', 'Business & Startups', 'Companies, brands, and service businesses with a public page.', 2, true, 'directory', 'Directory', 1, 'business-startups'),
+  ('developer-tools', 'Developer Tools', 'Libraries, APIs, CLIs, and other tools for people building software.', 3, true, 'directory', 'Directory', 1, 'developer-tools'),
+  ('instagram-pages', 'Instagram Pages', 'Public Instagram pages. Account passwords and private data are never collected.', 4, true, 'directory', 'Directory', 1, 'instagram-pages'),
+  ('youtube-channels', 'YouTube Channels', 'Public YouTube channels. Listing a channel does not verify its audience.', 5, true, 'directory', 'Directory', 1, 'youtube-channels'),
+  ('other-online-profiles', 'Other Online Profiles', 'Public profiles on LinkedIn, X, a personal site, or a similar network.', 6, true, 'directory', 'Directory', 1, 'other-online-profiles'),
+  ('gaming-esports', 'Gaming & Esports', 'Players, teams, tournaments, communities, and gaming websites.', 7, true, 'directory', 'Directory', 1, 'gaming-esports'),
+  ('art-creative-work', 'Art & Creative Work', 'Public portfolios of illustration, photography, design, writing, and animation.', 8, true, 'directory', 'Directory', 1, 'art-creative-work'),
+  ('music-entertainment', 'Music & Entertainment', 'Musicians, podcasts, entertainment channels, and public events.', 9, true, 'directory', 'Directory', 1, 'music-entertainment'),
+  ('skills-portfolios', 'Skills & Portfolios', 'Professional profiles and portfolios.', 10, true, 'directory', 'Directory', 1, 'skills-portfolios')
 on conflict (slug) do update
 set name = excluded.name,
     description = excluded.description,
     sort_order = excluded.sort_order,
-    is_active = excluded.is_active,
+    is_active = true,
     group_slug = excluded.group_slug,
     group_name = excluded.group_name,
     group_sort = excluded.group_sort,
     field_set = excluded.field_set;
+
+update public.categories
+set is_active = false
+where slug in (
+  'saas', 'fintech', 'commerce', 'education', 'health', 'climate', 'media',
+  'cars-bikes', 'luxury-gadgets', 'travel-experiences', 'fashion-collections',
+  'achievements-skills', 'fitness-lifestyle'
+);
+
+insert into public.ad_packages (slug, name, description, price_paise, duration_hours, placement, exclusive, is_active, sort_order)
+values
+  ('daily-featured', 'Daily Featured Listing', 'Labelled advertisement on Today''s Featured Ads for 24 hours from activation.', 19900, 24, 'daily_featured', false, true, 1),
+  ('weekly-featured', 'Weekly Featured Listing', 'Labelled advertisement on the permanent directory for seven days from activation.', 99900, 168, 'weekly_featured', false, true, 2),
+  ('weekly-category-sponsor', 'Weekly Category Sponsor', 'Labelled category sponsorship for seven days from activation.', 199900, 168, 'category_sponsor', false, true, 3)
+on conflict (slug) do update
+set name = excluded.name,
+    description = excluded.description,
+    duration_hours = excluded.duration_hours,
+    placement = excluded.placement,
+    exclusive = excluded.exclusive,
+    is_active = true,
+    sort_order = excluded.sort_order;

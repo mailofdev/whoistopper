@@ -16,6 +16,7 @@ const serverEnvSchema = z.object({
   CASHFREE_CLIENT_SECRET: z.string().optional(),
   CASHFREE_WEBHOOK_SECRET: z.string().optional(),
   PAYMENT_MODE: z.enum(["sandbox", "live"]).optional(),
+  ADVERTISING_LIVE_APPROVED: z.enum(["true", "false"]).optional(),
   ANALYTICS_SALT: z.string().optional(),
   CRON_SECRET: z.string().optional(),
   REQUIRE_ADMIN_MFA: z.enum(["true", "false"]).optional(),
@@ -58,6 +59,11 @@ export interface PaymentKeyConfig {
   keyId: string;
   keySecret: string;
   webhookSecret: string;
+}
+
+/** Live advertising charges stay off until the provider has approved this model. */
+export function liveAdvertisingApproved(env: ServerEnv = readServerEnv()): boolean {
+  return env.ADVERTISING_LIVE_APPROVED === "true";
 }
 
 export function readRazorpayConfig(env: ServerEnv = readServerEnv()): PaymentKeyConfig | null {

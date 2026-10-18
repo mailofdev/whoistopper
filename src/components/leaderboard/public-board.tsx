@@ -2,12 +2,9 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { useRouter } from "next/navigation";
 import { ListingMark, listingHost, listingWhen } from "@/components/leaderboard/listing-meta";
 import { Pagination } from "@/components/ui/primitives";
-import { claimRankAction } from "@/features/leaderboards/claim";
-import { formatInrFromPaise } from "@/lib/money";
-import { site } from "@/config/site";
+import { formatIstDateTime } from "@/features/campaigns/schedule";
 import type { Category, LeaderboardEntry } from "@/types/domain";
 
 export function PublicBoard({
@@ -37,56 +34,14 @@ export function PublicBoard({
   query?: string;
   path?: string;
 }) {
-  const router = useRouter();
-  const dialogRef = useRef<HTMLDialogElement>(null);
   const visible = entries;
-  const top = visible.find((entry) => entry.placement === "paid" && entry.amountPaise);
-  const opening = top?.amountPaise ? Math.floor(top.amountPaise / 100) + 1 : 99;
-  const [amount, setAmount] = useState(opening);
-  const [website, setWebsite] = useState("");
-  const [categoryChoice, setCategoryChoice] = useState(category ?? "");
-  const [agreed, setAgreed] = useState(false);
-  const [error, setError] = useState("");
-  const [confirming, setConfirming] = useState(false);
-  const [pending, setPending] = useState(false);
-  const quoted = rankFor(visible, amount);
   const boardName = bidding === "category"
     ? categories.find((item) => item.slug === category)?.name ?? "Category"
-    : scope === "daily" ? "Today" : "All-time";
-  const ready = website.trim().length > 0 && categoryChoice.length > 0 && amount >= 99;
-
-  function openConfirm() {
-    if (!ready) return;
-    setAgreed(false);
-    setError("");
-    setConfirming(true);
-    dialogRef.current?.showModal();
-  }
-
-  async function claim() {
-    if (!agreed) return;
-    setPending(true);
-    setError("");
-    const result = await claimRankAction({
-      website,
-      amountRupees: amount,
-      scope: scope === "daily" ? "daily" : "all_time",
-      category: categoryChoice,
-      boardCategory: bidding === "category" ? category : undefined,
-      termsAccepted: agreed,
-    });
-    setPending(false);
-    if (!result.ok) {
-      setError(result.error);
-      return;
-    }
-    dialogRef.current?.close();
-    router.push(result.href);
-  }
+    : scope === "daily" ? "Today's featured ads" : "Permanent directory";
 
   return (
     <div className="min-w-0 space-y-5">
-      <h1 className="sr-only">Rankings</h1>
+      <h1 className="sr-only">{boardName}</h1>
       <CategoryRail scope={scope} category={category} categories={categories} query={query} />
       <form className="flex gap-2" action={path} method="get">
         {category && !path.startsWith("/categories/") ? <input type="hidden" name="category" value={category} /> : null}
@@ -106,84 +61,26 @@ export function PublicBoard({
       </form>
       <div className="flex justify-center">
         <div className="glass inline-flex gap-1 rounded-full p-1 text-sm" role="tablist" aria-label="Ranking period">
-          <Tab href={category ? `/?category=${category}` : "/"} selected={scope === "all_time"}>All-time</Tab>
-          <Tab href={category ? `/leaderboard/today?category=${category}` : "/leaderboard/today"} selected={scope === "daily"}>Today</Tab>
+          <Tab href={category ? `/?category=${category}` : "/"} selected={scope === "all_time"}>Directory</Tab>
+          <Tab href={category ? `/leaderboard/today?category=${category}` : "/leaderboard/today"} selected={scope === "daily"}>Today&apos;s ads</Tab>
         </div>
       </div>
-      <form
-        id="claim-form"
-        className="space-y-4"
-        onSubmit={(event) => {
-          event.preventDefault();
-          openConfirm();
-        }}
-      >
-        <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2">
-          <p className="text-3xl font-semibold tracking-tight text-navy sm:text-4xl">
-            Claim <span className="text-brand">#{quoted}</span> for
-          </p>
-          <div className="flex items-center gap-2">
-            <Step label="Decrease amount" onClick={() => setAmount((value) => Math.max(99, value - 1))} disabled={amount <= 99}>−</Step>
-            <span className="flex items-baseline text-3xl font-semibold text-brand sm:text-4xl">
-              <span aria-hidden="true">₹</span>
-              <input
-                aria-label="Amount in rupees"
-                inputMode="numeric"
-                className="bg-transparent text-center text-brand outline-none"
-                style={{ width: `${Math.max(3, String(amount || 0).length)}ch` }}
-                value={amount || ""}
-                onChange={(event) => setAmount(Number(event.target.value.replace(/[^\d]/g, "")) || 0)}
-              />
-            </span>
-            <Step label="Increase amount" onClick={() => setAmount((value) => Math.min(1_000_000, value + 1))} disabled={amount >= 1_000_000}>+</Step>
-          </div>
-        </div>
-        <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_14rem_auto]">
-          <input
-            required
-            aria-label="Your product URL or @handle"
-            className="glass-field h-12 w-full rounded-full px-4 text-navy placeholder:text-secondary"
-            placeholder="Your product URL or @handle"
-            value={website}
-            onChange={(event) => setWebsite(event.target.value)}
-          />
-          <select
-            required
-            aria-label="Choose a category"
-            className="glass-field h-12 rounded-full px-4 text-navy"
-            value={categoryChoice}
-            onChange={(event) => setCategoryChoice(event.target.value)}
-          >
-            <option value="">Choose a category</option>
-            {categories.map((item) => (
-              <option key={item.id} value={item.slug}>{item.name}</option>
-            ))}
-          </select>
-          <button type="submit" disabled={!ready} className="h-12 rounded-full bg-brand px-5 text-sm font-semibold text-on-brand shadow-card disabled:cursor-not-allowed disabled:bg-muted disabled:text-secondary disabled:shadow-none">
-            Claim rank
-          </button>
-        </div>
-      </form>
+      <div className="glass flex flex-col gap-3 rounded-3xl p-4 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm leading-6 text-secondary">Organic listings are ordered by newest approval. Advertisements are fixed-price packages, labelled separately, and are not a rating or an endorsement.</p>
+        <Link href="/submit" className="inline-flex h-11 shrink-0 items-center justify-center rounded-full bg-brand px-4 text-sm font-semibold text-on-brand">Submit a listing</Link>
+      </div>
 
       <div className={today.length > 0 || scope === "all_time" ? "grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_18rem]" : ""}>
         <div className="min-w-0">
           {notice ? <p className="mb-3 text-sm text-secondary">{notice}</p> : null}
-          {error && !confirming ? <p className="mb-3 text-sm text-danger" role="alert">{error}</p> : null}
           <ol className="space-y-3">
             {visible.map((entry) => (
-              <ListingRow
-                key={entry.id}
-                entry={entry}
-                onTake={(rupees) => {
-                  setAmount(rupees);
-                  document.getElementById("claim-form")?.scrollIntoView({ behavior: "smooth", block: "center" });
-                }}
-              />
+              <ListingRow key={entry.id} entry={entry} />
             ))}
           </ol>
           {visible.length === 0 ? (
             <p className="glass rounded-3xl px-4 py-10 text-center text-sm leading-6 text-secondary">
-              {query ? "No listings match that search on this page of the board." : "No paid ranks on this board yet. Claim the first one with a public link. A rank is the amount paid, not a review."}
+              {query ? "No listings match that search." : scope === "daily" ? "No featured advertisements are running. A daily package lasts 24 hours from activation, not until midnight." : "No approved listings yet."}
             </p>
           ) : null}
           <Pagination page={page} total={total} pageSize={pageSize} hrefFor={(next) => boardHref(path, { category, query, pageSize, page: next })} />
@@ -191,80 +88,15 @@ export function PublicBoard({
         {scope === "all_time" ? <TodayRail entries={today} /> : null}
       </div>
 
-      <dialog
-        ref={dialogRef}
-        className="confirm-rank"
-        aria-labelledby="confirm-rank-title"
-        onClick={(event) => {
-          if (event.target === event.currentTarget) event.currentTarget.close();
-        }}
-        onClose={() => {
-          setAgreed(false);
-          setConfirming(false);
-        }}
-      >
-        <div className="glass rounded-3xl p-5 text-navy">
-          <div className="flex items-start justify-between gap-3">
-            <h2 id="confirm-rank-title" className="text-lg font-semibold">Confirm this rank</h2>
-            <button type="button" className="rounded-full px-2 text-secondary hover:text-navy" aria-label="Close" onClick={() => dialogRef.current?.close()}>×</button>
-          </div>
-          <p className="mt-2 text-sm leading-6 text-secondary">Check the rank and price, then agree to the Terms of Service to continue.</p>
-          <div className="mt-4 grid grid-cols-2 gap-3 rounded-2xl bg-muted/70 p-4 text-sm">
-            <div>
-              <p className="text-xs font-medium uppercase tracking-wide text-secondary">Rank</p>
-              <p className="mt-1 text-lg font-semibold">#{quoted}</p>
-              <p className="text-secondary">{boardName}</p>
-            </div>
-            <div className="text-right">
-              <p className="text-xs font-medium uppercase tracking-wide text-secondary">Price</p>
-              <p className="mt-1 text-lg font-semibold text-brand">{formatInrFromPaise(Math.max(amount, 0) * 100)}</p>
-              <p className="text-secondary">Due now</p>
-            </div>
-          </div>
-          <p className="mt-4 text-sm leading-6 text-secondary">
-            The amount is the rank. It is charged in full when payment confirms, and the listing goes on this board. If this listing is already here, the new amount must be at least ₹10 higher and it replaces the previous amount. Someone else can pay more and place above you. This is a paid ranking, not an auction.
-          </p>
-          <label className="mt-4 flex items-start gap-3 rounded-2xl border border-line px-3 py-3 text-sm leading-6">
-            <input
-              type="checkbox"
-              className="mt-1"
-              checked={agreed}
-              onChange={(event) => setAgreed(event.target.checked)}
-            />
-            <span>
-              I have read and agree to the <Link className="text-brand underline" href="/terms" target="_blank">Terms of Service</Link> of {site.domain}
-            </span>
-          </label>
-          <p className="mt-2 flex gap-3 px-1 text-xs text-secondary">
-            <Link className="underline" href="/privacy" target="_blank">Privacy</Link>
-            <Link className="underline" href="/rules" target="_blank">Rules</Link>
-          </p>
-          {error ? <p className="mt-3 text-sm text-danger" role="alert">{error}</p> : null}
-          <div className="mt-4 flex justify-end gap-2">
-            <button type="button" className="h-10 rounded-full px-4 text-sm text-secondary hover:text-navy" onClick={() => dialogRef.current?.close()}>Cancel</button>
-            <button type="button" disabled={!agreed || pending} className="h-10 rounded-full bg-brand px-4 text-sm font-semibold text-on-brand disabled:cursor-not-allowed disabled:bg-muted disabled:text-secondary" onClick={() => void claim()}>
-              {pending ? "Opening checkout…" : "Continue to checkout"}
-            </button>
-          </div>
-        </div>
-      </dialog>
     </div>
   );
 }
 
-function rankFor(entries: LeaderboardEntry[], rupees: number): number {
-  const paise = Math.round(rupees * 100);
-  const ahead = entries.filter((entry) => entry.placement === "paid" && entry.amountPaise != null && entry.amountPaise >= paise).length;
-  return ahead + 1;
-}
-
-function ListingRow({ entry, onTake }: { entry: LeaderboardEntry; onTake: (rupees: number) => void }) {
+function ListingRow({ entry }: { entry: LeaderboardEntry }) {
   const when = listingWhen(entry);
   const host = listingHost(entry);
-  const next = entry.amountPaise ? Math.floor(entry.amountPaise / 100) + 1 : 99;
   return (
     <li className="glass flex items-start gap-3 rounded-3xl p-4">
-      <span className="w-8 shrink-0 pt-3 text-sm font-semibold text-secondary">#{entry.rank ?? "–"}</span>
       <ListingMark name={entry.name} logoUrl={entry.logoUrl} />
       <div className="min-w-0 flex-1">
         <a className="block truncate font-medium hover:text-brand" href={`/out/${entry.slug}`} target="_blank" rel="noopener noreferrer">{entry.name}</a>
@@ -275,20 +107,15 @@ function ListingRow({ entry, onTake }: { entry: LeaderboardEntry; onTake: (rupee
           {host ? <><Sep />{host}</> : null}
           {entry.clicks > 0 ? <><Sep />{new Intl.NumberFormat("en-IN").format(entry.clicks)} clicks</> : null}
           <Sep />
-          <span>{entry.placement === "paid" ? "Paid · payment confirmed" : "Free listing"}</span>
+          <span>{entry.placement === "paid" ? "Advertisement" : "Organic listing"}</span>
+          {entry.placement === "paid" && entry.campaignEndsAt ? <><Sep />until {formatIstDateTime(entry.campaignEndsAt)}</> : null}
           <Sep />
           <span>{entry.ownershipVerified ? "Ownership verified" : "Ownership not verified"}</span>
           <Sep />
           <Link href={`/products/${entry.slug}`}>see details</Link>
         </p>
       </div>
-      {entry.placement === "paid" && entry.amountPaise ? (
-        <button type="button" className="shrink-0 pt-1 text-sm font-semibold text-brand" aria-label={`Set the rank amount to ${formatInrFromPaise(next * 100)} to place above this rank`} onClick={() => onTake(next)}>
-          {formatInrFromPaise(entry.amountPaise)}
-        </button>
-      ) : (
-        <span className="shrink-0 pt-1 text-sm text-secondary">Free</span>
-      )}
+      <span className="shrink-0 pt-1 text-sm text-secondary">{entry.placement === "paid" ? "Ad" : "Listing"}</span>
     </li>
   );
 }
@@ -298,34 +125,25 @@ function Sep() {
 }
 
 function TodayRail({ entries }: { entries: LeaderboardEntry[] }) {
-  const paid = entries.filter((entry) => entry.placement === "paid" && entry.rank);
+  const ads = entries.filter((entry) => entry.placement === "paid");
   return (
     <aside className="glass h-fit rounded-3xl p-4">
       <div className="flex items-center justify-between gap-3">
-        <h2 className="text-sm font-semibold">Today&apos;s ranking</h2>
+        <h2 className="text-sm font-semibold">Today&apos;s featured ads</h2>
         <Link href="/leaderboard/today" className="text-sm text-secondary hover:text-navy">see all</Link>
       </div>
-      {paid.length === 0 ? <p className="mt-4 text-sm text-secondary">No paid ranks yet today. The daily board starts empty at midnight IST.</p> : (
+      {ads.length === 0 ? <p className="mt-4 text-sm text-secondary">No featured advertisements are running. Each daily campaign lasts 24 hours from activation.</p> : (
         <ol className="mt-3 space-y-3">
-          {paid.slice(0, 9).map((entry) => (
+          {ads.slice(0, 9).map((entry) => (
             <li key={entry.id} className="flex items-center gap-2 text-sm">
-              <span className="w-6 shrink-0 text-xs text-secondary">#{entry.rank}</span>
               <ListingMark name={entry.name} logoUrl={entry.logoUrl} compact />
               <a className="min-w-0 flex-1 truncate hover:text-brand" href={`/out/${entry.slug}`} target="_blank" rel="noopener noreferrer">{entry.name}</a>
-              <span className="shrink-0 font-medium text-brand">{entry.amountPaise ? formatInrFromPaise(entry.amountPaise) : ""}</span>
+              <span className="shrink-0 text-xs text-secondary">Ad</span>
             </li>
           ))}
         </ol>
       )}
     </aside>
-  );
-}
-
-function Step({ label, disabled, onClick, children }: { label: string; disabled?: boolean; onClick: () => void; children: ReactNode }) {
-  return (
-    <button type="button" aria-label={label} disabled={disabled} className="grid h-8 w-8 place-items-center rounded-full border border-brand/40 text-lg leading-none text-brand disabled:opacity-40" onClick={onClick}>
-      {children}
-    </button>
   );
 }
 

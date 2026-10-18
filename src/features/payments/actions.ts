@@ -6,47 +6,31 @@ import { getCurrentUser } from "@/features/auth/session";
 import { toPublicError } from "@/lib/errors";
 import { getServices } from "@/lib/services";
 import { createSupabaseAdminClient } from "@/lib/supabase/clients";
-import { rupeesToPaise } from "@/lib/money";
+import { openPackageCheckout } from "@/features/payments/packages";
 import { upgradeSchema } from "@/lib/validation/schemas";
-import type { ScopeType } from "@/types/domain";
 
-export async function previewUpgradeAction(input: unknown) {
-  const parsed = upgradeSchema.safeParse(input);
-  if (!parsed.success) return { ok: false as const, error: "Enter a valid amount." };
-  try {
-    const user = await getCurrentUser();
-    if (!user) return { ok: false as const, error: "Sign in to preview a rank." };
-    const preview = await getServices().leaderboards.preview(
-      user,
-      parsed.data.productId,
-      parsed.data.scope,
-      rupeesToPaise(parsed.data.amountRupees),
-    );
-    return { ok: true as const, preview };
-  } catch (error) {
-    return { ok: false as const, error: toPublicError(error).message };
-  }
+export async function previewUpgradeAction() {
+  return { ok: false as const, error: "Rank previews are closed. Choose a fixed advertising package." };
 }
 
 export async function createUpgradeAction(input: unknown) {
   const parsed = upgradeSchema.safeParse(input);
-  if (!parsed.success) return { ok: false as const, error: "Enter a valid amount." };
+  if (!parsed.success) return { ok: false as const, error: "Choose an advertising package." };
   try {
     const user = await getCurrentUser();
-    if (!user) return { ok: false as const, error: "Sign in to pay for a rank." };
-    const supplied = typeof input === "object" && input && "idempotencyKey" in input
-      ? String((input as { idempotencyKey?: string }).idempotencyKey ?? "")
-      : "";
-    const idempotencyKey = /^[0-9a-f-]{36}$/i.test(supplied) ? supplied : crypto.randomUUID();
-    const order = await getServices().payments.createRankingOrder(
-      user,
-      parsed.data.productId,
-      parsed.data.scope as ScopeType,
-      rupeesToPaise(parsed.data.amountRupees),
-      idempotencyKey,
-    );
-    revalidatePath("/leaderboard");
-    return { ok: true as const, order };
+    if (!user) return { ok: false as const, error: "Sign in to buy an advertising package." };
+    const product = await getServices().products.getManageable(user, parsed.data.productId);
+    if (!product) return { ok: false as const, error: "That listing is not available." };
+    const opened = await openPackageCheckout({
+      productId: product.id,
+      packageSlug: parsed.data.packageSlug,
+      categoryId: product.categoryId,
+      userId: user.id,
+      clientPricePaise: parsed.data.clientPricePaise,
+    });
+    if (!opened.ok) return opened;
+    revalidatePath("/");
+    return { ok: true as const, href: opened.href, pricePaise: opened.pricePaise };
   } catch (error) {
     return { ok: false as const, error: toPublicError(error).message };
   }

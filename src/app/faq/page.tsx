@@ -3,7 +3,7 @@ import { pageMetadata } from "@/lib/metadata";
 
 export const metadata = pageMetadata(
   "FAQ",
-  "Common questions about RankPush: what a rank costs, which board it buys, what you can list, and when a payment is refunded.",
+  "What RankPush is, what an advertising package includes, and how refunds work.",
   "/faq",
 );
 
