@@ -1,10 +1,11 @@
 import { Suspense } from "react";
+import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { PublicBoard } from "@/components/leaderboard/public-board";
 import { Skeleton } from "@/components/ui/primitives";
 import { boardQuery } from "@/config/catalogue";
 import { istDayKey } from "@/features/leaderboards/engine";
-import { parsePage, parsePageSize } from "@/lib/pagination";
+import { LIST_PAGE_SIZE, listHref, pageCount, parsePage } from "@/lib/pagination";
 import { ConfigurationError, toPublicError } from "@/lib/errors";
 import { pageMetadata } from "@/lib/metadata";
 import { getServices } from "@/lib/services";
@@ -43,22 +44,30 @@ export async function Board({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const params = await searchParams;
-  const page = parsePage(params.page);
-  const pageSize = parsePageSize(params.pageSize, 20);
+  const requestedPage = parsePage(params.page);
+  const pageSize = LIST_PAGE_SIZE;
   const query = boardQuery(typeof params.q === "string" ? params.q : undefined);
   let entries: LeaderboardEntry[] = [];
   let today: LeaderboardEntry[] = [];
   let categories: Category[] = [];
   let total = 0;
+  let page = requestedPage;
   let notice: string | undefined;
+  let redirectTo: string | undefined;
   try {
     const services = getServices();
     categories = (await services.categories.list()).filter((category) => category.isActive);
     const categoryId = period === "daily" && categorySlug ? categories.find((category) => category.slug === categorySlug)?.id : undefined;
-    const board = await services.leaderboards.get(scope, page, pageSize, { query, categoryId });
-    entries = board.entries;
+    const board = await services.leaderboards.get(scope, requestedPage, pageSize, { query, categoryId });
     total = board.total;
-    if (period === "all_time" && scope.type !== "category") {
+    const lastPage = pageCount(total, pageSize);
+    if (requestedPage > lastPage) {
+      redirectTo = listHref(path, { category: categorySlug, query, page: lastPage });
+    } else {
+      entries = board.entries;
+      page = requestedPage;
+    }
+    if (!redirectTo && period === "all_time" && scope.type !== "category") {
       try {
         today = (await services.leaderboards.get(todayScope(), 1, 9)).entries;
       } catch {
@@ -70,6 +79,7 @@ export async function Board({
       ? "The directory is not connected to a database yet, so this page is empty."
       : toPublicError(error).message;
   }
+  if (redirectTo) redirect(redirectTo);
   return (
     <PublicBoard
       key={`${scope.type}:${scope.key}:${categorySlug ?? ""}:${query}:${page}`}

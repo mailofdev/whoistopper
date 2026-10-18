@@ -287,20 +287,31 @@ export const supabaseServices: AppServices = {
   products: {
     async search(query) {
       const client = await anon();
-      let request = client.from("products").select(productSelect, { count: "exact" }).eq("status", "approved");
+      let categoryId: string | undefined;
       if (query.category) {
         const category = await supabaseServices.categories.getBySlug(query.category);
         if (!category) return { items: [], page: query.page, pageSize: query.pageSize, total: 0 };
-        request = request.eq("category_id", category.id);
+        categoryId = category.id;
       }
-      if (query.q) {
-        const safe = query.q.replace(/[^a-zA-Z0-9\s-]/g, " ").trim();
-        if (safe) request = request.textSearch("search_vector", safe, { config: "simple", type: "websearch" });
-      }
-      if (query.sort === "name") request = request.order("name");
-      else request = request.order("approved_at", { ascending: false });
+      // The builder is thenable, so this stays synchronous. Returning it from an async function would run the query early.
+      const build = () => {
+        let request = client.from("products").select(productSelect, { count: "exact" }).eq("status", "approved");
+        if (categoryId) request = request.eq("category_id", categoryId);
+        if (query.q) {
+          const safe = query.q.replace(/[^a-zA-Z0-9\s-]/g, " ").trim();
+          if (safe) request = request.textSearch("search_vector", safe, { config: "simple", type: "websearch" });
+        }
+        if (query.sort === "name") request = request.order("name");
+        else request = request.order("approved_at", { ascending: false });
+        return request;
+      };
       const from = (query.page - 1) * query.pageSize;
-      const { data, error, count } = await request.range(from, from + query.pageSize - 1);
+      const { data, error, count } = await build().range(from, from + query.pageSize - 1);
+      if (error?.code === "PGRST103") {
+        const head = await build().range(0, 0);
+        if (head.error && head.error.code !== "PGRST103") fail(head.error);
+        return { items: [], page: query.page, pageSize: query.pageSize, total: head.count ?? 0 };
+      }
       fail(error);
       let items = (data ?? []).map((row) => cardFrom(row as unknown as Record<string, unknown>));
       if (query.tag) items = items.filter((item) => item.tags.includes(query.tag ?? ""));

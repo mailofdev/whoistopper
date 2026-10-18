@@ -3,5 +3,6 @@
   "/leaderboard/today/page": "app/leaderboard/today/page.js",
   "/page": "app/page.js",
   "/rules/page": "app/rules/page.js",
+  "/search/page": "app/search/page.js",
   "/submit/page": "app/submit/page.js"
 }

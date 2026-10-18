@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ListingMark, listingHost, listingWhen } from "@/components/leaderboard/listing-meta";
 import { Pagination } from "@/components/ui/primitives";
+import { LIST_PAGE_SIZE, listHref } from "@/lib/pagination";
 import { formatIstDateTime } from "@/features/campaigns/schedule";
 import type { Category, LeaderboardEntry } from "@/types/domain";
 
@@ -16,7 +17,7 @@ export function PublicBoard({
   bidding,
   notice,
   page = 1,
-  pageSize = 20,
+  pageSize = LIST_PAGE_SIZE,
   total = 0,
   query = "",
   path = "/",
@@ -52,12 +53,7 @@ export function PublicBoard({
           placeholder="Search this board"
           className="glass-field h-11 min-w-0 flex-1 rounded-full px-4 text-sm text-navy"
         />
-        <select name="pageSize" defaultValue={String(pageSize)} aria-label="Listings per page" className="glass-field h-11 rounded-full px-3 text-sm text-navy">
-          <option value="12">12</option>
-          <option value="20">20</option>
-          <option value="48">48</option>
-        </select>
-        <button className="h-11 rounded-full bg-brand px-4 text-sm font-semibold text-on-brand" type="submit">Search board</button>
+        <button className="h-11 shrink-0 rounded-full bg-brand px-4 text-sm font-semibold text-on-brand" type="submit">Search board</button>
       </form>
       <div className="flex justify-center">
         <div className="glass inline-flex gap-1 rounded-full p-1 text-sm" role="tablist" aria-label="Ranking period">
@@ -83,7 +79,7 @@ export function PublicBoard({
               {query ? "No listings match that search." : scope === "daily" ? "No featured advertisements are running. A daily package lasts 24 hours from activation, not until midnight." : "No approved listings yet."}
             </p>
           ) : null}
-          <Pagination page={page} total={total} pageSize={pageSize} hrefFor={(next) => boardHref(path, { category, query, pageSize, page: next })} />
+          <Pagination page={page} total={total} pageSize={pageSize} hrefFor={(next) => listHref(path, { category, query, page: next })} />
         </div>
         {scope === "all_time" ? <TodayRail entries={today} /> : null}
       </div>
@@ -147,16 +143,6 @@ function TodayRail({ entries }: { entries: LeaderboardEntry[] }) {
   );
 }
 
-function boardHref(path: string, input: { category?: string; query?: string; pageSize: number; page: number }) {
-  const params = new URLSearchParams();
-  if (input.category && !path.startsWith("/categories/")) params.set("category", input.category);
-  if (input.query) params.set("q", input.query);
-  if (input.pageSize !== 20) params.set("pageSize", String(input.pageSize));
-  if (input.page > 1) params.set("page", String(input.page));
-  const query = params.toString();
-  return query ? `${path}?${query}` : path;
-}
-
 function CategoryRail({
   scope,
   category,
@@ -212,9 +198,9 @@ function CategoryRail({
     <div className="flex items-center gap-2">
       {canPrev ? <RailButton label="Previous categories" direction="prev" onClick={() => scroll(-1)} /> : null}
       <div ref={scroller} className="glass flex min-w-0 flex-1 gap-1 overflow-x-auto rounded-full p-1 text-sm [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <Filter href={boardHref(scope === "daily" ? "/leaderboard/today" : "/", { query, pageSize: 20, page: 1 })} active={!category}>All</Filter>
+        <Filter href={listHref(scope === "daily" ? "/leaderboard/today" : "/", { query, page: 1 })} active={!category}>All</Filter>
         {categories.map((item) => (
-          <Filter key={item.id} href={boardHref(scope === "daily" ? "/leaderboard/today" : "/", { category: item.slug, query, pageSize: 20, page: 1 })} active={category === item.slug}>
+          <Filter key={item.id} href={listHref(scope === "daily" ? "/leaderboard/today" : "/", { category: item.slug, query, page: 1 })} active={category === item.slug}>
             {item.name}
           </Filter>
         ))}
