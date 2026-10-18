@@ -2085,3 +2085,11 @@ FAM | META SEQ | SST SEQ         | RANGE
     |          | 00000980 00001019 00001021 00001022 00001026 00001027 00001037 00001038 00001040 SST DELETED
     |          | 00001023 00001031 00001043 META DELETED
     |          | 00000981 00001020 00001045 META DELETED
+Time 2026-10-18T13:30:25.157601Z
+Commit 00001060 17128 keys in 165ms 710µs
+FAM | META SEQ | SST SEQ         | RANGE
+  0 | 00001057 | 00001056 SST    |                                                                             O                        | c44bdff4074eecdb-c44bdff4074eecdb (0 MiB, fresh, 38 bytes, 1 entries, 0 tombstones)
+  3 | 00001058 | 00001052 SST    | [==================================================================================================] | 008a72ba59c2e9f6-ff7706d72de3236e (0 MiB, fresh, 3033 bytes, 250 entries, 0 tombstones)
+  2 | 00001059 | 00001053 SST    | [================================================]                                                   | 001dcf772e22ee6f-7fcdd6fb1bad4091 (1 MiB, fresh, 1410510 bytes, 982 entries, 0 tombstones)
+  2 | 00001059 | 00001055 SST    |                                                   [================================================] | 8020e9d4cb3ff5dd-ffe8cd59a9c8d63d (2 MiB, fresh, 2929062 bytes, 925 entries, 0 tombstones)
+  1 | 00001060 | 00001054 SST    | [==================================================================================================] | 0003b9b17e8dd1ed-fff7122ae14945d6 (8 MiB, fresh, 8547759 bytes, 14970 entries, 0 tombstones)
