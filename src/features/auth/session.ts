@@ -26,7 +26,7 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
 
 export async function requireUser(): Promise<SessionUser> {
   const user = await getCurrentUser();
-  if (!user) redirect("/");
+  if (!user) redirect("/login");
   return user;
 }
 

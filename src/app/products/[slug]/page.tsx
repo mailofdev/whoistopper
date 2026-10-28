@@ -170,7 +170,8 @@ async function ProductDetailView({ params }: { params: Promise<{ slug: string }>
 }
 
 function SubmittedFacts({ product }: { product: ProductDetail }) {
-  const fields = fieldsFor(product.categoryFieldSet).filter((field) => product.details[field.key] && field.key !== "bannerUrl" && field.key !== "featuredVideoUrl");
+  const shown = new Set(["platform", "handle", "games", "languages", "achievements", "featuredVideoUrl", "bannerUrl"]);
+  const fields = fieldsFor(product.categorySlug).filter((field) => product.details[field.key] && !shown.has(field.key));
   if (fields.length === 0) return null;
   return (
     <Card>

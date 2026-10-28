@@ -4,9 +4,8 @@ import { istDayKey, shiftIstDay } from "@/features/leaderboards/engine";
 import { readListingImage } from "@/features/listings/media";
 import { sha256 } from "@/lib/security/hash";
 
-const creator = {
+const youtube = {
   platform: "YouTube",
-  profileUrl: "https://www.youtube.com/@example",
   handle: "example",
   games: "Valorant, League of Legends",
   languages: "English, Hindi",
@@ -19,20 +18,22 @@ describe("creator catalogue", () => {
     expect(new Set(CATALOGUE.map((item) => item.fieldSet))).toEqual(new Set([CREATOR_FIELD_SET]));
   });
 
-  it("keeps submitted creator fields and drops unknown ones", () => {
-    const clean = sanitizeDetails(CREATOR_FIELD_SET, { ...creator, password: "nope", rankAmount: "999" });
+  it("keeps the fields for that lane and drops the rest", () => {
+    const clean = sanitizeDetails("youtube", { ...youtube, password: "nope", role: "Player" });
     expect(clean.password).toBeUndefined();
-    expect(clean.rankAmount).toBeUndefined();
+    expect(clean.role).toBeUndefined();
     expect(clean.platform).toBe("YouTube");
     expect(clean.games).toContain("Valorant");
-    expect(clean.country).toBeUndefined();
-    expect(fieldsFor(CREATOR_FIELD_SET).filter((field) => field.required).every((field) => clean[field.key])).toBe(true);
+    expect(fieldsFor("clips").some((field) => field.key === "achievements")).toBe(false);
+    expect(fieldsFor("esports").some((field) => field.key === "role" && field.required)).toBe(true);
+    expect(fieldsFor("streaming").map((field) => field.key)).not.toContain("featuredVideoUrl");
   });
 
   it("rejects a retired lane, a missing required field, and gambling copy", () => {
-    expect(() => sanitizeDetails("youtube-channels", creator)).toThrow(/not open/);
-    expect(() => sanitizeDetails(CREATOR_FIELD_SET, { ...creator, profileUrl: "" })).toThrow(/channel or profile/i);
-    expect(() => sanitizeDetails(CREATOR_FIELD_SET, { ...creator, games: "Casino bets" })).toThrow(/gambling/i);
+    expect(() => sanitizeDetails("youtube-channels", youtube)).toThrow(/not open/);
+    expect(() => sanitizeDetails("youtube", { ...youtube, handle: "" })).toThrow(/handle/i);
+    expect(() => sanitizeDetails("streaming", { platform: "TikTok", handle: "example", games: "Valorant", languages: "English" })).toThrow(/platform/i);
+    expect(() => sanitizeDetails("gaming", { platform: "Twitch", handle: "example", games: "Casino bets", languages: "English" })).toThrow(/gambling/i);
     expect(RETIRED_CATEGORY_SLUGS).toContain("youtube-channels");
     expect(CATEGORY_MIGRATION["youtube-channels"].slug).toBe("youtube");
     expect(CATEGORY_MIGRATION.saas.slug).toBe("communities");

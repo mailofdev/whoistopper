@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
-import { fieldsFor, isActiveFieldSet } from "@/config/catalogue";
+import { CHANNEL_LABEL, LANE_SOCIALS, fieldsFor, isActiveFieldSet, type ListingField } from "@/config/catalogue";
 import { formatInrFromPaise } from "@/lib/money";
 import type { AdPackageDefinition } from "@/config/packages";
 import {
@@ -15,20 +15,30 @@ import {
 import { Alert, Button, Field, SelectInput, TextArea, TextInput } from "@/components/ui/primitives";
 import type { Category } from "@/types/domain";
 
+const socialPlaceholders: Record<string, string> = {
+  youtube: "https://youtube.com/…",
+  twitch: "https://twitch.tv/…",
+  kick: "https://kick.com/…",
+  instagram: "https://instagram.com/…",
+  x: "https://x.com/…",
+  linkedin: "https://linkedin.com/…",
+};
+
 export function ListingForm({ categories, packages }: { categories: Category[]; packages: AdPackageDefinition[] }) {
-  const open = categories.filter((item) => isActiveFieldSet(item.fieldSet));
+  const open = categories.filter((item) => isActiveFieldSet(item.fieldSet) && fieldsFor(item.slug).length > 0);
   const [categorySlug, setCategorySlug] = useState(open[0]?.slug ?? "");
-  const [filter, setFilter] = useState("");
   const [placement, setPlacement] = useState<"free" | "paid">("free");
   const [packageSlug, setPackageSlug] = useState<string>(packages[0]?.slug ?? "");
   const [previewing, setPreviewing] = useState(false);
+  const [draft, setDraft] = useState({ name: "", url: "", summary: "" });
+  const formRef = useRef<HTMLFormElement>(null);
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
   const [saved, setSaved] = useState<{ managePath: string; checkoutHref?: string; warning?: string } | null>(null);
   const category = open.find((item) => item.slug === categorySlug) ?? open[0];
-  const fields = fieldsFor(category?.fieldSet ?? "");
-  const visible = open.filter((item) => item.name.toLowerCase().includes(filter.trim().toLowerCase()));
+  const fields = fieldsFor(category?.slug ?? "");
   const selectedPackage = packages.find((item) => item.slug === packageSlug) ?? packages[0];
+  const socials = LANE_SOCIALS[category?.slug ?? ""] ?? [];
 
   if (saved) {
     return (
@@ -44,14 +54,14 @@ export function ListingForm({ categories, packages }: { categories: Category[]; 
 
   return (
     <form
-      className="glass space-y-4 rounded-3xl p-5"
-      onChange={() => setPreviewing(false)}
+      ref={formRef}
+      className="glass mx-auto max-w-2xl space-y-3 rounded-3xl p-4 sm:p-5"
+      onInput={() => {
+        if (previewing) setPreviewing(false);
+      }}
       onSubmit={async (event) => {
         event.preventDefault();
-        if (!previewing) {
-          setPreviewing(true);
-          return;
-        }
+        if (!previewing) return;
         setPending(true);
         setError("");
         const result = await submitListingAction(new FormData(event.currentTarget));
@@ -61,82 +71,44 @@ export function ListingForm({ categories, packages }: { categories: Category[]; 
       }}
     >
       {error ? <Alert>{error}</Alert> : null}
-      <Field label="Search categories">
-        <TextInput value={filter} onChange={(event) => setFilter(event.target.value)} placeholder="Search lanes" aria-label="Search categories" />
-      </Field>
       <Field label="Lane" hint={category?.description}>
-        <SelectInput
-          name="categorySlug"
-          value={category?.slug ?? ""}
-          required
-          onChange={(event) => {
-            const next = event.target.value;
-            const form = event.currentTarget.form;
-            const dirty = fields.some((field) => {
-              const control = form?.elements.namedItem(`detail_${field.key}`);
-              return control instanceof HTMLInputElement || control instanceof HTMLTextAreaElement || control instanceof HTMLSelectElement
-                ? control.value.trim().length > 0
-                : false;
-            });
-            if (dirty && !window.confirm("Switching category clears fields that only apply to the current category.")) {
-              event.target.value = category?.slug ?? "";
-              return;
-            }
-            if (form) {
-              for (const field of fields) {
-                const control = form.elements.namedItem(`detail_${field.key}`);
-                if (control instanceof HTMLInputElement || control instanceof HTMLTextAreaElement) control.value = "";
-                if (control instanceof HTMLSelectElement) control.value = "";
-              }
-            }
-            setCategorySlug(next);
-            setPreviewing(false);
-          }}
-        >
-          {visible.map((item) => <option key={item.id} value={item.slug}>{item.name}</option>)}
+        <SelectInput name="categorySlug" value={category?.slug ?? ""} required onChange={(event) => setCategorySlug(event.target.value)}>
+          {open.map((item) => <option key={item.id} value={item.slug}>{item.name}</option>)}
         </SelectInput>
       </Field>
-      <Field label="Creator name" hint="The public name on the profile. It is not a verified claim.">
-        <TextInput name="name" required minLength={2} maxLength={80} />
-      </Field>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Field label="Creator name">
+          <TextInput name="name" required minLength={2} maxLength={80} />
+        </Field>
+        <Field label="Your name" hint="Submitter. Not an ownership check.">
+          <TextInput name="creatorName" maxLength={80} />
+        </Field>
+        <Field label={CHANNEL_LABEL[category?.slug ?? ""] ?? "Channel URL"} hint="Public page. Shorteners are blocked.">
+          <TextInput name="websiteUrl" type="text" inputMode="url" required placeholder="https:// or youtube.com/…" />
+        </Field>
+        <Field label="Avatar" hint="Optional image, under 2 MB.">
+          <input className="block w-full text-sm" name="image" type="file" accept="image/jpeg,image/png,image/webp" />
+        </Field>
+      </div>
       <Field label="Short description">
         <TextInput name="shortDescription" required minLength={12} maxLength={160} />
       </Field>
-      <Field label="Description">
-        <TextArea name="fullDescription" required minLength={12} maxLength={5000} />
+      <Field label="About">
+        <TextArea name="fullDescription" required minLength={12} maxLength={5000} className="min-h-20" />
       </Field>
-      <Field label="Channel or profile URL" hint="The page people should open. Shorteners and private hosts are blocked.">
-        <TextInput name="websiteUrl" type="url" required placeholder="https://" />
-      </Field>
-      <Field label="Your name" hint="Shown as the person who submitted the profile. This does not verify ownership.">
-        <TextInput name="creatorName" maxLength={80} />
-      </Field>
-      <Field label="Avatar" hint="Optional JPEG, PNG, or WebP under 2 MB. An avatar adds 10 points to the organic score.">
-        <input className="block text-sm" name="image" type="file" accept="image/jpeg,image/png,image/webp" />
-      </Field>
-      {fields.map((field) => (
-        <Field key={`${category?.slug ?? "category"}-${field.key}`} label={`${field.label}${field.required ? " (required)" : " (optional)"}`} hint={field.hint}>
-          {field.kind === "select" ? (
-            <SelectInput name={`detail_${field.key}`} required={field.required} defaultValue="">
-              <option value="">{field.required ? "Choose one" : "Optional"}</option>
-              {field.options?.map((option) => <option key={option} value={option}>{option}</option>)}
-            </SelectInput>
-          ) : field.kind === "textarea" ? (
-            <TextArea name={`detail_${field.key}`} required={field.required} maxLength={field.max} />
-          ) : (
-            <TextInput name={`detail_${field.key}`} required={field.required} maxLength={field.max} defaultValue={field.key === "country" ? "India" : undefined} inputMode={field.kind === "url" ? "url" : "text"} />
-          )}
-        </Field>
-      ))}
-      <fieldset className="grid gap-3 sm:grid-cols-2">
-        <legend className="mb-2 text-sm font-medium">Optional social links</legend>
-        <TextInput name="social_youtube" placeholder="https://youtube.com/…" aria-label="YouTube URL" />
-        <TextInput name="social_twitch" placeholder="https://twitch.tv/…" aria-label="Twitch URL" />
-        <TextInput name="social_kick" placeholder="https://kick.com/…" aria-label="Kick URL" />
-        <TextInput name="social_instagram" placeholder="https://instagram.com/…" aria-label="Instagram URL" />
-        <TextInput name="social_x" placeholder="https://x.com/…" aria-label="X URL" />
-        <TextInput name="social_linkedin" placeholder="https://linkedin.com/…" aria-label="LinkedIn URL" />
-      </fieldset>
+      <div className="grid gap-3 sm:grid-cols-2" key={category?.slug ?? "lane"}>
+        {fields.map((field) => (
+          <LaneField key={field.key} field={field} wide={field.kind === "textarea"} />
+        ))}
+      </div>
+      {socials.length > 0 ? (
+        <div className="grid gap-3 sm:grid-cols-2">
+          <p className="text-sm font-medium sm:col-span-2">Social links</p>
+          {socials.map((key) => (
+            <TextInput key={key} name={`social_${key}`} placeholder={socialPlaceholders[key]} aria-label={`${key} URL`} />
+          ))}
+        </div>
+      ) : null}
       <fieldset>
         <legend className="text-sm font-medium">Promotion</legend>
         <div className="mt-2 flex flex-wrap gap-4 text-sm">
@@ -173,12 +145,59 @@ export function ListingForm({ categories, packages }: { categories: Category[]; 
       {previewing ? (
         <div className="rounded-2xl bg-muted px-4 py-3 text-sm leading-6" aria-live="polite">
           <p className="font-semibold text-navy">Preview</p>
+          <p className="font-medium">{draft.name || "Untitled profile"}</p>
+          <p className="break-all text-secondary">{draft.url}</p>
+          <p>{draft.summary}</p>
           <p>{category?.name}. {placement === "paid" && selectedPackage ? `${selectedPackage.name} at ${formatInrFromPaise(selectedPackage.pricePaise)}. This is an advertisement, not a rating.` : "Free profile. It is not an advertisement."}</p>
-          <p>Submit stores this profile. A paid campaign starts only after the payment is verified on the server.</p>
+          <p>Publish stores this profile. A paid campaign starts only after the payment is verified on the server.</p>
         </div>
       ) : null}
-      <Button type="submit" disabled={pending || open.length === 0}>{pending ? "Saving…" : previewing ? "Publish profile" : "Review profile"}</Button>
+      <Button
+        type="button"
+        disabled={pending || open.length === 0}
+        onClick={() => {
+          const form = formRef.current;
+          if (!form) return;
+          if (!previewing) {
+            if (!form.reportValidity()) return;
+            const data = new FormData(form);
+            setDraft({
+              name: String(data.get("name") ?? "").trim(),
+              url: String(data.get("websiteUrl") ?? "").trim(),
+              summary: String(data.get("shortDescription") ?? "").trim(),
+            });
+            setPreviewing(true);
+            return;
+          }
+          form.requestSubmit();
+        }}
+      >
+        {pending ? "Saving…" : previewing ? "Publish profile" : "Review profile"}
+      </Button>
     </form>
+  );
+}
+
+function LaneField({ field, wide, defaultValue = "" }: { field: ListingField; wide?: boolean; defaultValue?: string }) {
+  if (field.kind === "select" && field.options?.length === 1) {
+    return <input type="hidden" name={`detail_${field.key}`} value={field.options[0]} />;
+  }
+  const label = `${field.label}${field.required ? "" : " (optional)"}`;
+  return (
+    <div className={wide ? "sm:col-span-2" : undefined}>
+      <Field label={label} hint={field.hint || undefined}>
+        {field.kind === "select" ? (
+          <SelectInput name={`detail_${field.key}`} required={field.required} defaultValue={defaultValue}>
+            <option value="">{field.required ? "Choose one" : "Optional"}</option>
+            {field.options?.map((option) => <option key={option} value={option}>{option}</option>)}
+          </SelectInput>
+        ) : field.kind === "textarea" ? (
+          <TextArea name={`detail_${field.key}`} required={field.required} maxLength={field.max} defaultValue={defaultValue} className="min-h-20" />
+        ) : (
+          <TextInput name={`detail_${field.key}`} required={field.required} maxLength={field.max} defaultValue={defaultValue} inputMode={field.kind === "url" ? "url" : "text"} />
+        )}
+      </Field>
+    </div>
   );
 }
 
@@ -194,6 +213,7 @@ export function ManageForm({
     fullDescription: string;
     creatorName: string;
     fieldSet: string;
+    categorySlug: string;
     details: Record<string, string>;
     socialLinks: Record<string, string>;
     status: string;
@@ -202,7 +222,8 @@ export function ManageForm({
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [nextPath, setNextPath] = useState("");
-  const fields = fieldsFor(listing.fieldSet);
+  const fields = fieldsFor(listing.categorySlug);
+  const socials = [...new Set([...(LANE_SOCIALS[listing.categorySlug] ?? []), ...Object.keys(listing.socialLinks)])].filter((key) => key in socialPlaceholders);
 
   return (
     <div className="space-y-6">
@@ -218,37 +239,27 @@ export function ManageForm({
         }
       }}>
         <input type="hidden" name="token" value={token} />
-        <input type="hidden" name="fieldSet" value={listing.fieldSet} />
         <p className="text-sm text-secondary">Status: {listing.status}. Payment confirmation and ownership verification stay separate, and neither is changed from this form.</p>
         <Field label="Title"><TextInput name="name" defaultValue={listing.name} required minLength={2} maxLength={80} /></Field>
         <Field label="Short description"><TextInput name="shortDescription" defaultValue={listing.shortDescription} required minLength={12} maxLength={160} /></Field>
         <Field label="Description"><TextArea name="fullDescription" defaultValue={listing.fullDescription} required minLength={12} /></Field>
-        <Field label="Public URL"><TextInput name="websiteUrl" defaultValue={listing.websiteUrl} required /></Field>
+        <Field label="Public URL"><TextInput name="websiteUrl" type="text" inputMode="url" defaultValue={listing.websiteUrl} required placeholder="https:// or youtube.com/…" /></Field>
         <Field label="Display name"><TextInput name="creatorName" defaultValue={listing.creatorName} maxLength={80} /></Field>
         <Field label="Replace image" hint="Optional JPEG, PNG, or WebP under 2 MB.">
           <input className="block text-sm" name="image" type="file" accept="image/jpeg,image/png,image/webp" />
         </Field>
-        {fields.length === 0 ? <Alert>This category is no longer open. Contact support to move the listing.</Alert> : null}
-        {fields.map((field) => (
-          <Field key={field.key} label={`${field.label}${field.required ? " (required)" : " (optional)"}`} hint={field.hint}>
-            {field.kind === "select" ? (
-              <SelectInput name={`detail_${field.key}`} required={field.required} defaultValue={listing.details[field.key] ?? ""}>
-                <option value="">Choose one</option>
-                {field.options?.map((option) => <option key={option} value={option}>{option}</option>)}
-              </SelectInput>
-            ) : field.kind === "textarea" ? (
-              <TextArea name={`detail_${field.key}`} defaultValue={listing.details[field.key] ?? ""} required={field.required} maxLength={field.max} />
-            ) : (
-              <TextInput name={`detail_${field.key}`} defaultValue={listing.details[field.key] ?? ""} required={field.required} maxLength={field.max} />
-            )}
-          </Field>
-        ))}
-        <TextInput name="social_youtube" defaultValue={listing.socialLinks.youtube ?? ""} aria-label="YouTube URL" placeholder="https://youtube.com/…" />
-        <TextInput name="social_twitch" defaultValue={listing.socialLinks.twitch ?? ""} aria-label="Twitch URL" placeholder="https://twitch.tv/…" />
-        <TextInput name="social_kick" defaultValue={listing.socialLinks.kick ?? ""} aria-label="Kick URL" placeholder="https://kick.com/…" />
-        <TextInput name="social_instagram" defaultValue={listing.socialLinks.instagram ?? ""} aria-label="Instagram URL" placeholder="https://instagram.com/…" />
-        <TextInput name="social_x" defaultValue={listing.socialLinks.x ?? ""} aria-label="X URL" placeholder="https://x.com/…" />
-        <TextInput name="social_linkedin" defaultValue={listing.socialLinks.linkedin ?? ""} aria-label="LinkedIn URL" placeholder="https://linkedin.com/…" />
+        {fields.length === 0 ? <Alert>This category is no longer open. Contact support to move the listing.</Alert> : (
+          <div className="grid gap-3 sm:grid-cols-2">
+            {fields.map((field) => (
+              <LaneField key={field.key} field={field} wide={field.kind === "textarea"} defaultValue={listing.details[field.key] ?? ""} />
+            ))}
+          </div>
+        )}
+        <div className="grid gap-3 sm:grid-cols-2">
+          {socials.map((key) => (
+            <TextInput key={key} name={`social_${key}`} defaultValue={listing.socialLinks[key] ?? ""} aria-label={`${key} URL`} placeholder={socialPlaceholders[key]} />
+          ))}
+        </div>
         <label className="flex items-start gap-2 text-sm">
           <input className="mt-1" type="checkbox" name="authorized" required />
           <span>I still own this destination or I am authorised to promote it.</span>

@@ -31,7 +31,7 @@ async function SubmitForm() {
       <>
         <PageHeader
           title="Launch a profile"
-          description="No account is required. You get a private link to edit or remove the profile. A free profile is not an advertisement. A paid package is a labelled advertisement at a fixed price, charged only after the server verifies payment."
+          description="Free to publish. You get a private edit link. A promotion is optional and starts only after payment is verified."
         />
         <ListingForm categories={categories} packages={packages} />
       </>

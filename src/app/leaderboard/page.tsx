@@ -27,6 +27,9 @@ export default function LeaderboardPage({ searchParams }: { searchParams: Promis
 
 async function AllTime({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   await connection();
+  const params = await searchParams;
+  const category = typeof params.category === "string" ? params.category : "";
+  if (/^[a-z0-9-]+$/.test(category)) redirect(`/categories/${category}`);
   return <Board scope={{ type: "all_time", key: "all_time" }} period="all_time" path="/leaderboard" searchParams={searchParams} />;
 }
 

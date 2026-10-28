@@ -76,7 +76,7 @@ export async function submitListingAction(formData: FormData): Promise<ListingRe
     if (text(formData, "termsAccepted") !== "on") return { ok: false, error: "Accept the Terms, advertising rules, and Privacy Policy." };
     const category = await admin.from("categories").select("id, field_set, slug").eq("slug", categorySlug).eq("is_active", true).maybeSingle();
     if (!category.data || !isActiveFieldSet(String(category.data.field_set))) return { ok: false, error: "Choose a category." };
-    const fieldSet = String(category.data.field_set);
+    const fieldSet = String(category.data.slug);
     const detailInput: Record<string, string> = {};
     for (const field of fieldsFor(fieldSet)) detailInput[field.key] = text(formData, `detail_${field.key}`);
     const details = sanitizeDetails(fieldSet, detailInput);
@@ -191,8 +191,12 @@ export async function updateManagedListingAction(formData: FormData): Promise<Li
     if (shortDescription.length < 12 || shortDescription.length > 160) return { ok: false, error: "Add a short description between 12 and 160 characters." };
     if (fullDescription.length < 12 || fullDescription.length > 5000) return { ok: false, error: "Add a description between 12 and 5000 characters." };
     const websiteUrl = normalizeWebsiteUrl(text(formData, "websiteUrl"));
-    const fieldSet = text(formData, "fieldSet");
-    if (!isActiveFieldSet(fieldSet)) return { ok: false, error: "This category is not open for changes." };
+    const category = Array.isArray(found.product.categories) ? found.product.categories[0] : found.product.categories;
+    const categoryRow = category as { slug?: string; field_set?: string } | null;
+    const fieldSet = categoryRow?.slug ?? "";
+    if (!isActiveFieldSet(categoryRow?.field_set ?? "") || fieldsFor(fieldSet).length === 0) {
+      return { ok: false, error: "This category is not open for changes." };
+    }
     if (text(formData, "authorized") !== "on") return { ok: false, error: "Confirm that you own this destination or are allowed to promote it." };
     const detailInput: Record<string, string> = {};
     for (const field of fieldsFor(fieldSet)) detailInput[field.key] = text(formData, `detail_${field.key}`);

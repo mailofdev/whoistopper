@@ -47,7 +47,7 @@ export function ProductForm({
     },
   });
   const [categorySlug, setCategorySlug] = useState(defaults?.categorySlug ?? categories[0]?.slug ?? "");
-  const fields = fieldsFor(categories.find((item) => item.slug === categorySlug)?.fieldSet ?? "");
+  const fields = fieldsFor(categorySlug);
 
   return (
     <form

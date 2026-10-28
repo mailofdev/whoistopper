@@ -27,12 +27,13 @@ export function SiteSearch() {
     >
       <input
         autoFocus
-        aria-label="Search products"
+        aria-label="Search creators"
         className="glass-field h-11 min-w-0 flex-1 rounded-full px-4 text-sm text-navy outline-none sm:w-56 sm:flex-none"
-        placeholder="Search"
+        placeholder="Search creators"
         value={query}
         onChange={(event) => setQuery(event.target.value)}
       />
+      <button className="h-11 shrink-0 rounded-full bg-brand px-4 text-sm font-semibold text-on-brand" type="submit">Search</button>
       <button type="button" className="h-11 shrink-0 rounded-full px-3 text-sm text-secondary" onClick={() => setOpen(false)}>Close</button>
     </form>
   );

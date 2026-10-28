@@ -43,8 +43,8 @@ export function PublicBoard({
 
   return (
     <div className="min-w-0 space-y-5">
-      <h1 className="sr-only">{boardName}</h1>
-      <CategoryRail scope={scope} category={category} categories={categories} query={query} />
+      <h1 className="text-3xl font-semibold tracking-tight">{boardName}</h1>
+      <CategoryRail scope={scope} category={category} categories={categories} query={query} path={path} />
       <form className="flex gap-2" action={path} method="get">
         {category && !path.startsWith("/categories/") ? <input type="hidden" name="category" value={category} /> : null}
         <input
@@ -99,7 +99,7 @@ function ListingRow({ entry }: { entry: LeaderboardEntry }) {
         <a className="block truncate font-medium hover:text-brand" href={`/out/${entry.slug}`} target="_blank" rel="noopener noreferrer">{entry.name}</a>
         {entry.shortDescription ? <p className="mt-1 line-clamp-2 text-sm leading-6 text-secondary">{entry.shortDescription}</p> : null}
         <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-secondary">
-          <Link href={`/?category=${entry.categorySlug}`}>{entry.categoryName}</Link>
+          <Link href={`/categories/${entry.categorySlug}`}>{entry.categoryName}</Link>
           {when ? <><Sep />{when}</> : null}
           {host ? <><Sep />{host}</> : null}
           {entry.clicks > 0 ? <><Sep />{new Intl.NumberFormat("en-IN").format(entry.clicks)} clicks</> : null}
@@ -112,7 +112,7 @@ function ListingRow({ entry }: { entry: LeaderboardEntry }) {
           <Link href={`/products/${entry.slug}`}>see details</Link>
         </p>
       </div>
-      <span className="shrink-0 pt-1 text-sm text-secondary">{entry.placement === "paid" ? "Ad" : "Listing"}</span>
+      <span className="shrink-0 pt-1 text-sm text-secondary">{entry.placement === "paid" ? "Ad" : "Profile"}</span>
     </li>
   );
 }
@@ -149,11 +149,13 @@ function CategoryRail({
   category,
   categories,
   query,
+  path,
 }: {
   scope: "all_time" | "daily";
   category?: string;
   categories: Category[];
   query?: string;
+  path: string;
 }) {
   const scroller = useRef<HTMLDivElement>(null);
   const [canPrev, setCanPrev] = useState(false);
@@ -199,9 +201,15 @@ function CategoryRail({
     <div className="flex items-center gap-2">
       {canPrev ? <RailButton label="Previous categories" direction="prev" onClick={() => scroll(-1)} /> : null}
       <div ref={scroller} className="glass flex min-w-0 flex-1 gap-1 overflow-x-auto rounded-full p-1 text-sm [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <Filter href={listHref(scope === "daily" ? "/leaderboard/today" : "/", { query, page: 1 })} active={!category}>All</Filter>
+        <Filter href={listHref(scope === "daily" ? "/leaderboard/today" : "/leaderboard", { query, page: 1 })} active={!category && !path.startsWith("/categories/")}>All</Filter>
         {categories.map((item) => (
-          <Filter key={item.id} href={listHref(scope === "daily" ? "/leaderboard/today" : "/", { category: item.slug, query, page: 1 })} active={category === item.slug}>
+          <Filter
+            key={item.id}
+            href={scope === "daily"
+              ? listHref("/leaderboard/today", { category: item.slug, query, page: 1 })
+              : listHref(`/categories/${item.slug}`, { query, page: 1 })}
+            active={category === item.slug}
+          >
             {item.name}
           </Filter>
         ))}

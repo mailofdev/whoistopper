@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { ProductCard } from "@/components/products/product-card";
 import { EmptyState, Skeleton } from "@/components/ui/primitives";
@@ -9,16 +10,19 @@ import { ConfigurationError, toPublicError } from "@/lib/errors";
 import { getServices } from "@/lib/services";
 import type { Category, LeaderboardEntry, ProductCardModel } from "@/types/domain";
 
-export default function HomePage() {
+export default function HomePage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   return (
     <Suspense fallback={<Skeleton className="h-96" />}>
-      <Home />
+      <Home searchParams={searchParams} />
     </Suspense>
   );
 }
 
-async function Home() {
+async function Home({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   await connection();
+  const params = await searchParams;
+  const category = typeof params.category === "string" ? params.category : "";
+  if (/^[a-z0-9-]+$/.test(category)) redirect(`/categories/${category}`);
   let notice = "";
   let categories: Category[] = [];
   let recent: ProductCardModel[] = [];

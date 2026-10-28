@@ -104,8 +104,9 @@ export function TextInput(props: InputHTMLAttributes<HTMLInputElement>) {
   return <input className={controlClass} {...props} />;
 }
 
-export function TextArea(props: TextareaHTMLAttributes<HTMLTextAreaElement>) {
-  return <textarea className={cn(controlClass, "min-h-32 py-2")} {...props} />;
+export function TextArea({ className, ...props }: TextareaHTMLAttributes<HTMLTextAreaElement>) {
+  const customHeight = className?.includes("min-h-");
+  return <textarea className={cn(controlClass, "py-2", !customHeight && "min-h-32", className)} {...props} />;
 }
 
 export function SelectInput(props: SelectHTMLAttributes<HTMLSelectElement>) {

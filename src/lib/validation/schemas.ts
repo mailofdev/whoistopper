@@ -16,15 +16,15 @@ export const loginSchema = z.object({
 });
 
 export const signupSchema = z.object({
-  displayName: z.string().trim().min(2).max(80),
+  displayName: z.string().trim().min(2, "Use at least 2 characters.").max(80, "Use 80 characters or fewer."),
   username: z
     .string()
     .trim()
-    .min(3)
-    .max(24)
+    .min(3, "Use at least 3 characters.")
+    .max(24, "Use 24 characters or fewer.")
     .regex(/^[a-z0-9_]+$/, "Use lowercase letters, numbers, and underscores."),
-  email: z.string().trim().email().max(200),
-  password: z.string().min(8).max(200),
+  email: z.string().trim().email("Enter a valid email.").max(200),
+  password: z.string().min(8, "Use at least 8 characters.").max(200),
 });
 
 export const resetSchema = z.object({

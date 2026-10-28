@@ -8,6 +8,11 @@ import { loginAction, signupAction } from "@/features/auth/actions";
 import { loginSchema, signupSchema } from "@/lib/validation/schemas";
 import { Alert, Button, Field, TextInput } from "@/components/ui/primitives";
 
+function safeNext(value: string | null): string {
+  if (!value || !value.startsWith("/") || value.startsWith("//") || value.includes("\\") || value.includes("://")) return "/dashboard";
+  return value;
+}
+
 export function LoginForm({
   demo,
 }: {
@@ -23,7 +28,7 @@ export function LoginForm({
         setError("");
         const result = await loginAction(values);
         if (!result.ok) setError(result.error);
-        else router.push("/dashboard");
+        else router.push(safeNext(new URLSearchParams(window.location.search).get("next")));
       })}
     >
       {error ? <Alert>{error}</Alert> : null}

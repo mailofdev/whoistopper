@@ -76,20 +76,71 @@ export interface ListingField {
   urlKind?: UrlKind;
 }
 
-const creatorFields: ListingField[] = [
-  { key: "platform", label: "Primary platform", kind: "select", required: true, max: 40, options: ["YouTube", "Twitch", "Kick", "TikTok", "Instagram", "Other"], hint: "Where people mainly watch you. This is not checked against the platform." },
-  { key: "profileUrl", label: "Public channel or profile URL", kind: "url", required: true, max: 300, urlKind: "any", hint: "A public page. Never a password, session, or analytics login." },
-  { key: "handle", label: "Public handle", kind: "text", required: true, max: 40, hint: "Without a password or token." },
-  { key: "games", label: "Games", kind: "text", required: true, max: 160, hint: "Comma-separated. These become the game tags used on discovery pages." },
-  { key: "languages", label: "Languages", kind: "text", required: true, max: 120, hint: "Comma-separated languages you publish in." },
-  { key: "country", label: "Country", kind: "text", max: 80, hint: "Optional. Leave blank if you do not want one shown." },
-  { key: "achievements", label: "Achievements", kind: "textarea", max: 500, hint: "Optional. As submitted. RankPush does not verify placements, subscriber counts, or earnings." },
-  { key: "featuredVideoUrl", label: "Featured YouTube video", kind: "url", max: 300, urlKind: "youtube", hint: "Optional public YouTube URL. Other hosts are not embedded." },
-  { key: "bannerUrl", label: "Banner image URL", kind: "url", max: 300, urlKind: "any", hint: "Optional public https image. An uploaded avatar is separate." },
+const handle: ListingField = { key: "handle", label: "Handle", kind: "text", required: true, max: 40, hint: "" };
+const games: ListingField = { key: "games", label: "Games", kind: "text", required: true, max: 160, hint: "Comma-separated" };
+const languages: ListingField = { key: "languages", label: "Languages", kind: "text", required: true, max: 120, hint: "Comma-separated" };
+const achievements: ListingField = { key: "achievements", label: "Achievements", kind: "textarea", max: 500, hint: "Optional. Not verified." };
+const featuredVideo: ListingField = { key: "featuredVideoUrl", label: "Featured video", kind: "url", max: 300, urlKind: "youtube", hint: "Optional YouTube link" };
+
+function platform(options: readonly string[]): ListingField {
+  return { key: "platform", label: "Platform", kind: "select", required: true, max: 40, options, hint: "" };
+}
+
+/** Lane-specific questions. The public channel URL is a separate field on the form. */
+const LANE_FIELDS: Record<string, ListingField[]> = {
+  youtube: [platform(["YouTube"]), handle, games, languages, featuredVideo, achievements],
+  streaming: [platform(["Twitch", "Kick", "YouTube"]), handle, games, languages],
+  gaming: [platform(["YouTube", "Twitch", "Kick", "Other"]), handle, games, languages, achievements],
+  esports: [
+    platform(["YouTube", "Twitch", "Kick", "Other"]),
+    { key: "role", label: "Role", kind: "select", required: true, max: 40, options: ["Player", "Team", "Organisation"], hint: "" },
+    handle,
+    games,
+    languages,
+    achievements,
+  ],
+  clips: [platform(["YouTube", "TikTok", "Instagram"]), handle, games, languages],
+  communities: [
+    platform(["YouTube", "Twitch", "Kick", "Other"]),
+    handle,
+    { ...games, required: false, hint: "Optional, comma-separated" },
+    languages,
+  ],
+};
+
+const displayFields: ListingField[] = [
+  platform(["YouTube", "Twitch", "Kick", "TikTok", "Instagram", "Other"]),
+  { key: "role", label: "Role", kind: "text", max: 40, hint: "" },
+  handle,
+  games,
+  languages,
+  { key: "country", label: "Country", kind: "text", max: 80, hint: "" },
+  achievements,
+  featuredVideo,
+  { key: "profileUrl", label: "Profile URL", kind: "url", max: 300, urlKind: "any", hint: "" },
+  { key: "bannerUrl", label: "Banner image URL", kind: "url", max: 300, urlKind: "any", hint: "" },
 ];
 
 export const FIELD_SETS: Record<string, ListingField[]> = {
-  [CREATOR_FIELD_SET]: creatorFields,
+  [CREATOR_FIELD_SET]: displayFields,
+};
+
+export const LANE_SOCIALS: Record<string, readonly ("youtube" | "twitch" | "kick" | "instagram" | "x" | "linkedin")[]> = {
+  youtube: ["youtube", "instagram", "x"],
+  streaming: ["twitch", "kick", "youtube", "x"],
+  gaming: ["twitch", "youtube", "x"],
+  esports: ["twitch", "youtube", "x"],
+  clips: ["youtube", "instagram", "x"],
+  communities: ["youtube", "twitch", "instagram", "x"],
+};
+
+export const CHANNEL_LABEL: Record<string, string> = {
+  youtube: "YouTube channel URL",
+  streaming: "Stream or channel URL",
+  gaming: "Profile URL",
+  esports: "Team or player URL",
+  clips: "Clip channel URL",
+  communities: "Community URL",
 };
 
 export const CATALOGUE = [
@@ -104,7 +155,7 @@ export const CATALOGUE = [
 const GAMBLING = /\b(gambling|casino|sportsbook|wager(?:ing)?|betting|cheat(?:ing|s)?|stolen account|account theft)\b/i;
 
 export function fieldsFor(fieldSet: string): ListingField[] {
-  return FIELD_SETS[fieldSet] ?? [];
+  return LANE_FIELDS[fieldSet] ?? FIELD_SETS[fieldSet] ?? [];
 }
 
 export function isActiveFieldSet(fieldSet: string): boolean {

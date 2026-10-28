@@ -373,10 +373,10 @@ export const supabaseServices: AppServices = {
     },
     async create(user, input) {
       const client = await server();
-      const { data: category, error: categoryError } = await client.from("categories").select("id, field_set").eq("slug", input.categorySlug).eq("is_active", true).maybeSingle();
+      const { data: category, error: categoryError } = await client.from("categories").select("id, field_set, slug").eq("slug", input.categorySlug).eq("is_active", true).maybeSingle();
       fail(categoryError);
       if (!category || !isActiveFieldSet(String(category.field_set))) throw new AppError("Choose a category.", "invalid_category", 400);
-      const details = sanitizeDetails(String(category.field_set), input.details ?? {});
+      const details = sanitizeDetails(String(category.slug), input.details ?? {});
       details.authorization = "confirmed";
       const existing = await client.from("products").select("id, owner_id").eq("normalized_url", input.websiteUrl).maybeSingle();
       fail(existing.error);
@@ -421,9 +421,9 @@ export const supabaseServices: AppServices = {
         throw new AppError("You cannot edit this listing.", "forbidden", 403);
       }
       const client = await server();
-      const { data: category } = await client.from("categories").select("id, field_set, is_active").eq("slug", input.categorySlug).maybeSingle();
+      const { data: category } = await client.from("categories").select("id, field_set, slug, is_active").eq("slug", input.categorySlug).maybeSingle();
       if (!category || !category.is_active || !isActiveFieldSet(String(category.field_set))) throw new AppError("Choose a category.", "invalid_category", 400);
-      const details = sanitizeDetails(String(category.field_set), input.details ?? {});
+      const details = sanitizeDetails(String(category.slug), input.details ?? {});
       details.authorization = "confirmed";
       const urlChanged = current.normalizedUrl !== input.websiteUrl;
       const { error } = await client.from("products").update({
