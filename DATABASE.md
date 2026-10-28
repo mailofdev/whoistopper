@@ -10,12 +10,12 @@ Migrations in `supabase/migrations` are the schema source of truth. `supabase/se
 - `ownership_claims` store a hash of the email or domain token.
 - `ranking_placements` hold one active row per product, scope, and scope key. History rows remain when status changes.
 - `payment_orders`, `payment_attempts`, `provider_events`, and `ledger_entries` record money. Ledger rows are the auditable charges and refunds.
-- `analytics_events` and `analytics_daily` store views and clicks. Public trending can read daily counts. Raw visitor hashes are not public.
+- `analytics_events` and `analytics_daily` store views and clicks. Public trending can read daily counts. Raw visitor hashes are not public. `analytics_referrers` stores referring hosts for the profile owner and administrators.
 - `notifications`, `reports`, `moderation_decisions`, `contact_messages`, `admin_audit_logs`, `platform_settings`, `sponsored_placements`, and `webhook_failures` support operations.
 
 ## Ranking consistency
 
-`ad_packages` stores the fixed price and duration. `ad_campaigns` stores the activation window. `apply_provider_event` checks the provider amount against the order, writes one ledger charge, and creates one campaign per order. Public directory order is newest approval, then name. Shared advertisements are ordered by `starts_at`, not by amount. Historical `payment_orders` and `ledger_entries` are kept. New `ranking_upgrade` captures are marked for refund and do not move a listing.
+`ad_packages` stores the fixed price and duration. `ad_campaigns` stores the activation window. `apply_provider_event` checks the provider amount against the order, writes one ledger charge, and creates one campaign per order. Public organic order is the published score in `get_leaderboard`: capped 30-day clicks, a 14-day freshness bonus, verified ownership, and an avatar. Equal scores use newer approval, then name. Shared advertisements are ordered by `starts_at`, not by amount. Historical `payment_orders` and `ledger_entries` are kept. New `ranking_upgrade` captures are marked for refund and do not move a listing.
 
 Daily scope keys created for signed-in upgrades are `to_char(now() at time zone 'Asia/Kolkata', 'YYYY-MM-DD')`, so a client cannot pre-buy tomorrow. Guest bids use the same IST date on the server. Older UTC keys stay as history. `snapshot_daily_board` records a finished IST day. Removing or rejecting a listing supersedes its active placements. Payment rows stay.
 

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ListingMark, listingHost, listingWhen } from "@/components/leaderboard/listing-meta";
 import { Pagination } from "@/components/ui/primitives";
+import { ORGANIC_RANKING_SUMMARY } from "@/features/leaderboards/engine";
 import { LIST_PAGE_SIZE, listHref } from "@/lib/pagination";
 import { formatIstDateTime } from "@/features/campaigns/schedule";
 import type { Category, LeaderboardEntry } from "@/types/domain";
@@ -37,8 +38,8 @@ export function PublicBoard({
 }) {
   const visible = entries;
   const boardName = bidding === "category"
-    ? categories.find((item) => item.slug === category)?.name ?? "Category"
-    : scope === "daily" ? "Today's featured ads" : "Permanent directory";
+    ? categories.find((item) => item.slug === category)?.name ?? "Lane"
+    : scope === "daily" ? "Promoted today" : "Creators";
 
   return (
     <div className="min-w-0 space-y-5">
@@ -57,13 +58,13 @@ export function PublicBoard({
       </form>
       <div className="flex justify-center">
         <div className="glass inline-flex gap-1 rounded-full p-1 text-sm" role="tablist" aria-label="Ranking period">
-          <Tab href={listHref("/", { category, query })} selected={scope === "all_time"}>Directory</Tab>
-          <Tab href={listHref("/leaderboard/today", { category, query })} selected={scope === "daily"}>Today&apos;s ads</Tab>
+          <Tab href={listHref("/leaderboard", { category, query })} selected={scope === "all_time"}>Creators</Tab>
+          <Tab href={listHref("/leaderboard/today", { category, query })} selected={scope === "daily"}>Promoted</Tab>
         </div>
       </div>
       <div className="glass flex flex-col gap-3 rounded-3xl p-4 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm leading-6 text-secondary">Organic listings are ordered by newest approval. Advertisements are fixed-price packages, labelled separately, and are not a rating or an endorsement.</p>
-        <Link href="/submit" className="inline-flex h-11 shrink-0 items-center justify-center rounded-full bg-brand px-4 text-sm font-semibold text-on-brand">Submit a listing</Link>
+        <p className="text-sm leading-6 text-secondary">{ORGANIC_RANKING_SUMMARY}</p>
+        <Link href="/submit" className="inline-flex h-11 shrink-0 items-center justify-center rounded-full bg-brand px-4 text-sm font-semibold text-on-brand">Launch a profile</Link>
       </div>
 
       <div className={today.length > 0 || scope === "all_time" ? "grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_18rem]" : ""}>
@@ -76,7 +77,7 @@ export function PublicBoard({
           </ol>
           {visible.length === 0 ? (
             <p className="glass rounded-3xl px-4 py-10 text-center text-sm leading-6 text-secondary">
-              {query ? "No listings match that search." : scope === "daily" ? "No featured advertisements are running. A daily package lasts 24 hours from activation, not until midnight." : "No approved listings yet."}
+              {query ? "No profiles match that search." : scope === "daily" ? "No featured advertisements are running. A daily package lasts 24 hours from activation, not until midnight." : "No approved profiles yet."}
             </p>
           ) : null}
           <Pagination page={page} total={total} pageSize={pageSize} hrefFor={(next) => listHref(path, { category, query, page: next })} />
@@ -103,7 +104,7 @@ function ListingRow({ entry }: { entry: LeaderboardEntry }) {
           {host ? <><Sep />{host}</> : null}
           {entry.clicks > 0 ? <><Sep />{new Intl.NumberFormat("en-IN").format(entry.clicks)} clicks</> : null}
           <Sep />
-          <span>{entry.placement === "paid" ? "Advertisement" : "Organic listing"}</span>
+          <span>{entry.placement === "paid" ? "Advertisement" : "Organic"}</span>
           {entry.placement === "paid" && entry.campaignEndsAt ? <><Sep />until {formatIstDateTime(entry.campaignEndsAt)}</> : null}
           <Sep />
           <span>{entry.ownershipVerified ? "Ownership verified" : "Ownership not verified"}</span>
@@ -125,7 +126,7 @@ function TodayRail({ entries }: { entries: LeaderboardEntry[] }) {
   return (
     <aside className="glass h-fit rounded-3xl p-4">
       <div className="flex items-center justify-between gap-3">
-        <h2 className="text-sm font-semibold">Today&apos;s featured ads</h2>
+        <h2 className="text-sm font-semibold">Promoted today</h2>
         <Link href="/leaderboard/today" className="text-sm text-secondary hover:text-navy">see all</Link>
       </div>
       {ads.length === 0 ? <p className="mt-4 text-sm text-secondary">No featured advertisements are running. Each daily campaign lasts 24 hours from activation.</p> : (

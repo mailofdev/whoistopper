@@ -60,10 +60,10 @@ export function ProductForm({
       })}
     >
       {error ? <Alert>{error}</Alert> : null}
-      <Field label="Product name" error={form.formState.errors.name?.message}>
+      <Field label="Profile name" error={form.formState.errors.name?.message}>
         <TextInput {...form.register("name")} />
       </Field>
-      <Field label="Website" hint="Use the public https address. Shorteners are blocked." error={form.formState.errors.websiteUrl?.message}>
+      <Field label="Channel or profile URL" hint="Use the public https address. Shorteners are blocked." error={form.formState.errors.websiteUrl?.message}>
         <TextInput inputMode="url" placeholder="https://example.com" {...form.register("websiteUrl")} />
       </Field>
       <Field label="Short description" error={form.formState.errors.shortDescription?.message}>
@@ -72,7 +72,7 @@ export function ProductForm({
       <Field label="Full description" error={form.formState.errors.fullDescription?.message}>
         <TextArea {...form.register("fullDescription")} />
       </Field>
-      <Field label="Category" error={form.formState.errors.categorySlug?.message}>
+      <Field label="Lane" error={form.formState.errors.categorySlug?.message}>
         <SelectInput {...form.register("categorySlug", { onChange: (event) => setCategorySlug(event.target.value) })}>
           {categories.map((category) => <option key={category.id} value={category.slug}>{category.name}</option>)}
         </SelectInput>
@@ -91,7 +91,7 @@ export function ProductForm({
           )}
         </Field>
       ))}
-      <Field label="Tags" hint="Comma-separated, up to 8." error={form.formState.errors.tags?.message}>
+      <Field label="Extra tags" hint="Comma-separated, up to 8. Games in the field above are tagged automatically." error={form.formState.errors.tags?.message}>
         <TextInput
           defaultValue={defaults?.tags ?? ""}
           onChange={(event) => {

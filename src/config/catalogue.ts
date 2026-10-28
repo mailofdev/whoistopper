@@ -1,16 +1,14 @@
 import { normalizeWebsiteUrl } from "@/lib/urls";
 
+export const CREATOR_FIELD_SET = "creator";
+
 export const ACTIVE_CATEGORY_SLUGS = [
-  "websites-saas",
-  "business-startups",
-  "developer-tools",
-  "instagram-pages",
-  "youtube-channels",
-  "other-online-profiles",
-  "gaming-esports",
-  "art-creative-work",
-  "music-entertainment",
-  "skills-portfolios",
+  "youtube",
+  "streaming",
+  "gaming",
+  "esports",
+  "clips",
+  "communities",
 ] as const;
 
 /** Slugs that must stay inactive. Re-seeding must not turn them back on. */
@@ -28,21 +26,40 @@ export const RETIRED_CATEGORY_SLUGS = [
   "fashion-collections",
   "achievements-skills",
   "fitness-lifestyle",
+  "websites-saas",
+  "business-startups",
+  "developer-tools",
+  "instagram-pages",
+  "youtube-channels",
+  "other-online-profiles",
+  "gaming-esports",
+  "art-creative-work",
+  "music-entertainment",
+  "skills-portfolios",
 ] as const;
 
 /**
- * Automatic moves for known legacy slugs. `developer-tools` keeps its slug and is updated in place.
- * Listings on retired slugs that are not in this map stay attached for a manual review.
+ * Moves for known legacy slugs. Listings on slugs outside this map stay attached for a manual review.
  */
 export const CATEGORY_MIGRATION: Record<string, { slug: string; reason: string }> = {
-  saas: { slug: "websites-saas", reason: "legacy catalogue map" },
-  fintech: { slug: "business-startups", reason: "legacy catalogue map" },
-  commerce: { slug: "business-startups", reason: "legacy catalogue map" },
-  health: { slug: "business-startups", reason: "legacy catalogue map" },
-  climate: { slug: "business-startups", reason: "legacy catalogue map" },
-  education: { slug: "skills-portfolios", reason: "legacy catalogue map" },
-  media: { slug: "music-entertainment", reason: "default media map; review if the listing is not entertainment" },
-  "achievements-skills": { slug: "skills-portfolios", reason: "catalogue replacement" },
+  saas: { slug: "communities", reason: "creator catalogue" },
+  fintech: { slug: "communities", reason: "creator catalogue" },
+  commerce: { slug: "communities", reason: "creator catalogue" },
+  health: { slug: "communities", reason: "creator catalogue" },
+  climate: { slug: "communities", reason: "creator catalogue" },
+  education: { slug: "communities", reason: "creator catalogue" },
+  media: { slug: "streaming", reason: "creator catalogue" },
+  "achievements-skills": { slug: "communities", reason: "creator catalogue" },
+  "websites-saas": { slug: "communities", reason: "creator catalogue" },
+  "business-startups": { slug: "communities", reason: "creator catalogue" },
+  "developer-tools": { slug: "communities", reason: "creator catalogue" },
+  "instagram-pages": { slug: "clips", reason: "creator catalogue" },
+  "youtube-channels": { slug: "youtube", reason: "creator catalogue" },
+  "other-online-profiles": { slug: "communities", reason: "creator catalogue" },
+  "gaming-esports": { slug: "gaming", reason: "creator catalogue" },
+  "art-creative-work": { slug: "communities", reason: "creator catalogue" },
+  "music-entertainment": { slug: "streaming", reason: "creator catalogue" },
+  "skills-portfolios": { slug: "communities", reason: "creator catalogue" },
 };
 
 export type FieldKind = "text" | "textarea" | "url" | "select";
@@ -59,90 +76,29 @@ export interface ListingField {
   urlKind?: UrlKind;
 }
 
-const countryField: ListingField = {
-  key: "country",
-  label: "Country or target audience",
-  kind: "text",
-  max: 80,
-  hint: "Optional. India is used when this is left blank.",
-};
+const creatorFields: ListingField[] = [
+  { key: "platform", label: "Primary platform", kind: "select", required: true, max: 40, options: ["YouTube", "Twitch", "Kick", "TikTok", "Instagram", "Other"], hint: "Where people mainly watch you. This is not checked against the platform." },
+  { key: "profileUrl", label: "Public channel or profile URL", kind: "url", required: true, max: 300, urlKind: "any", hint: "A public page. Never a password, session, or analytics login." },
+  { key: "handle", label: "Public handle", kind: "text", required: true, max: 40, hint: "Without a password or token." },
+  { key: "games", label: "Games", kind: "text", required: true, max: 160, hint: "Comma-separated. These become the game tags used on discovery pages." },
+  { key: "languages", label: "Languages", kind: "text", required: true, max: 120, hint: "Comma-separated languages you publish in." },
+  { key: "country", label: "Country", kind: "text", max: 80, hint: "Optional. Leave blank if you do not want one shown." },
+  { key: "achievements", label: "Achievements", kind: "textarea", max: 500, hint: "Optional. As submitted. RankPush does not verify placements, subscriber counts, or earnings." },
+  { key: "featuredVideoUrl", label: "Featured YouTube video", kind: "url", max: 300, urlKind: "youtube", hint: "Optional public YouTube URL. Other hosts are not embedded." },
+  { key: "bannerUrl", label: "Banner image URL", kind: "url", max: 300, urlKind: "any", hint: "Optional public https image. An uploaded avatar is separate." },
+];
 
 export const FIELD_SETS: Record<string, ListingField[]> = {
-  "websites-saas": [
-    countryField,
-    { key: "productType", label: "Product type", kind: "select", required: true, max: 40, options: ["SaaS", "Web app", "Content website", "Marketplace", "Other"], hint: "What kind of public product this is." },
-    { key: "useCase", label: "Main use case", kind: "text", required: true, max: 160, hint: "What a visitor uses it for." },
-    { key: "audience", label: "Target audience", kind: "text", required: true, max: 120, hint: "Who it is for. This is not checked." },
-    { key: "pricingUrl", label: "Pricing page URL", kind: "url", max: 300, urlKind: "any", hint: "Optional." },
-    { key: "launchUrl", label: "Public launch URL", kind: "url", max: 300, urlKind: "any", hint: "Optional." },
-  ],
-  "business-startups": [
-    countryField,
-    { key: "businessType", label: "Business type", kind: "select", required: true, max: 40, options: ["Startup", "Small business", "D2C brand", "Service business", "Other"], hint: "As submitted. Not a funding or turnover check." },
-    { key: "industry", label: "Industry", kind: "text", required: true, max: 80, hint: "As submitted." },
-    { key: "market", label: "Target market", kind: "text", required: true, max: 120, hint: "Who the business serves." },
-    { key: "socialUrl", label: "Public social profile", kind: "url", max: 300, urlKind: "any", hint: "Optional." },
-  ],
-  "developer-tools": [
-    countryField,
-    { key: "toolType", label: "Tool type", kind: "select", required: true, max: 40, options: ["Library", "API", "CLI", "Browser extension", "Development platform", "Other"], hint: "As submitted." },
-    { key: "platform", label: "Supported technology or platform", kind: "text", required: true, max: 120, hint: "For example, a language, framework, or operating system." },
-    { key: "openSource", label: "Open-source status", kind: "select", required: true, max: 20, options: ["Yes", "No", "Not applicable"], hint: "As submitted. A repository link is not a licence review." },
-    { key: "repositoryUrl", label: "Repository URL", kind: "url", max: 300, urlKind: "repository", hint: "Optional public repository." },
-  ],
-  "instagram-pages": [
-    countryField,
-    { key: "profileUrl", label: "Public Instagram profile URL", kind: "url", required: true, max: 300, urlKind: "instagram", hint: "A public instagram.com URL. Never a password or session." },
-    { key: "handle", label: "Public handle", kind: "text", required: true, max: 40, hint: "Without a password or token." },
-    { key: "niche", label: "Page niche", kind: "text", required: true, max: 120, hint: "As submitted." },
-    { key: "audienceSize", label: "Publicly stated audience size", kind: "text", max: 40, hint: "Optional. Not required, and not verified." },
-  ],
-  "youtube-channels": [
-    countryField,
-    { key: "channelUrl", label: "Public YouTube channel URL", kind: "url", required: true, max: 300, urlKind: "youtube", hint: "A public YouTube URL. Never a password or analytics login." },
-    { key: "niche", label: "Content niche", kind: "text", required: true, max: 120, hint: "As submitted." },
-    { key: "subscribers", label: "Public subscriber count", kind: "text", max: 40, hint: "Optional. Listing a channel does not verify the audience." },
-  ],
-  "other-online-profiles": [
-    countryField,
-    { key: "platform", label: "Platform", kind: "select", required: true, max: 40, options: ["LinkedIn", "X", "Personal website", "Portfolio", "Community", "Newsletter", "Other"], hint: "Where the public profile lives." },
-    { key: "purpose", label: "Profile purpose or niche", kind: "text", required: true, max: 160, hint: "As submitted." },
-  ],
-  "gaming-esports": [
-    countryField,
-    { key: "title", label: "Game or esports title", kind: "text", required: true, max: 80, hint: "The game or competition. Gambling and cheating services are not allowed." },
-    { key: "listingType", label: "Listing type", kind: "select", required: true, max: 40, options: ["Player", "Team", "Tournament", "Community", "Gaming website"], hint: "As submitted." },
-    { key: "profileUrl", label: "Public profile or team URL", kind: "url", max: 300, urlKind: "any", hint: "Optional." },
-  ],
-  "art-creative-work": [
-    countryField,
-    { key: "discipline", label: "Creative discipline", kind: "select", required: true, max: 40, options: ["Illustration", "Photography", "Design", "Writing", "Animation", "Other"], hint: "As submitted." },
-    { key: "shopUrl", label: "Shop or commission URL", kind: "url", max: 300, urlKind: "any", hint: "Optional public page." },
-  ],
-  "music-entertainment": [
-    countryField,
-    { key: "listingType", label: "Listing type", kind: "select", required: true, max: 40, options: ["Musician", "Podcast", "Entertainment channel", "Event", "Other"], hint: "As submitted." },
-    { key: "genre", label: "Genre or niche", kind: "text", required: true, max: 80, hint: "As submitted." },
-    { key: "streamingUrl", label: "Public streaming or social link", kind: "url", max: 300, urlKind: "any", hint: "Optional." },
-  ],
-  "skills-portfolios": [
-    countryField,
-    { key: "profession", label: "Profession or skill category", kind: "text", required: true, max: 80, hint: "As submitted. Do not include government IDs or home addresses." },
-    { key: "skills", label: "Publicly displayed skills", kind: "text", max: 200, hint: "Optional." },
-  ],
+  [CREATOR_FIELD_SET]: creatorFields,
 };
 
 export const CATALOGUE = [
-  { slug: "websites-saas", name: "Websites & SaaS", description: "Public websites, web apps, and software products.", fieldSet: "websites-saas", sort: 1 },
-  { slug: "business-startups", name: "Business & Startups", description: "Companies, brands, and service businesses with a public page.", fieldSet: "business-startups", sort: 2 },
-  { slug: "developer-tools", name: "Developer Tools", description: "Libraries, APIs, CLIs, and other tools for people building software.", fieldSet: "developer-tools", sort: 3 },
-  { slug: "instagram-pages", name: "Instagram Pages", description: "Public Instagram pages. Account passwords and private data are never collected.", fieldSet: "instagram-pages", sort: 4 },
-  { slug: "youtube-channels", name: "YouTube Channels", description: "Public YouTube channels. Listing a channel does not verify its audience.", fieldSet: "youtube-channels", sort: 5 },
-  { slug: "other-online-profiles", name: "Other Online Profiles", description: "Public profiles on LinkedIn, X, a personal site, or a similar network.", fieldSet: "other-online-profiles", sort: 6 },
-  { slug: "gaming-esports", name: "Gaming & Esports", description: "Players, teams, tournaments, communities, and gaming websites. Gambling and cheating services are excluded.", fieldSet: "gaming-esports", sort: 7 },
-  { slug: "art-creative-work", name: "Art & Creative Work", description: "Public portfolios of illustration, photography, design, writing, and animation.", fieldSet: "art-creative-work", sort: 8 },
-  { slug: "music-entertainment", name: "Music & Entertainment", description: "Musicians, podcasts, entertainment channels, and public events.", fieldSet: "music-entertainment", sort: 9 },
-  { slug: "skills-portfolios", name: "Skills & Portfolios", description: "Professional profiles and portfolios. Government IDs and private employment documents are not collected.", fieldSet: "skills-portfolios", sort: 10 },
+  { slug: "youtube", name: "YouTube", description: "Channels and YouTube creators with a public page.", fieldSet: CREATOR_FIELD_SET, sort: 1 },
+  { slug: "streaming", name: "Streaming", description: "Live streamers on Twitch, Kick, YouTube, and similar public platforms.", fieldSet: CREATOR_FIELD_SET, sort: 2 },
+  { slug: "gaming", name: "Gaming", description: "Players and gaming creators. Gambling and cheating services are excluded.", fieldSet: CREATOR_FIELD_SET, sort: 3 },
+  { slug: "esports", name: "Esports", description: "Players, teams, and competitive organisations with a public profile.", fieldSet: CREATOR_FIELD_SET, sort: 4 },
+  { slug: "clips", name: "Clips", description: "Short-form creators on Shorts, TikTok, Reels, and clip channels.", fieldSet: CREATOR_FIELD_SET, sort: 5 },
+  { slug: "communities", name: "Communities", description: "Game communities, shows, and other public creator pages.", fieldSet: CREATOR_FIELD_SET, sort: 6 },
 ] as const;
 
 const GAMBLING = /\b(gambling|casino|sportsbook|wager(?:ing)?|betting|cheat(?:ing|s)?|stolen account|account theft)\b/i;
@@ -183,15 +139,13 @@ export function sanitizeDetails(fieldSet: string, input: unknown): Record<string
     }
     details[field.key] = field.kind === "url" ? destination(value, field.urlKind ?? "any", field.label) : value;
   }
-  if (!details.country) details.country = "India";
-  if (fieldSet === "gaming-esports" && GAMBLING.test(Object.values(details).join(" "))) {
+  if (GAMBLING.test(Object.values(details).join(" "))) {
     throw new Error("Gambling, wagering, and cheating services cannot be listed.");
   }
   return details;
 }
 
-export function assertPermittedCopy(fieldSet: string, texts: string[]): void {
-  if (fieldSet !== "gaming-esports") return;
+export function assertPermittedCopy(_fieldSet: string, texts: string[]): void {
   if (GAMBLING.test(texts.join(" "))) throw new Error("Gambling, wagering, and cheating services cannot be listed.");
 }
 

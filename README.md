@@ -1,6 +1,8 @@
 # RankPush
 
-RankPush (rankpush.lol) is an India-first directory for products, websites, and tools. Anyone can claim a rank with a product link and a verified INR payment. There is no account. A paid rank is the verified bid. It is not a rating or an endorsement.
+RankPush (rankpush.lol) is a creator launch and discovery platform for YouTubers, streamers, and gamers. A public profile is free. Organic order uses a published score. Promotions are labelled fixed-price advertisements in INR and do not change that score. An advertisement is not a rating or an endorsement.
+
+Apply `supabase/migrations` before expecting lanes, profiles, or referral hosts. The app does not invent creators when the database is empty or disconnected.
 
 ## Development
 

@@ -12,8 +12,8 @@ import { getServices } from "@/lib/services";
 import type { Category, LeaderboardEntry, LeaderboardScope } from "@/types/domain";
 
 export const metadata = pageMetadata(
-  "Directory",
-  "Approved listings in newest-approval order, with fixed-price advertisements labelled separately.",
+  "Discover creators",
+  "Approved creator profiles in organic-score order, with fixed-price advertisements labelled separately.",
   "/leaderboard",
 );
 
@@ -76,7 +76,7 @@ export async function Board({
     }
   } catch (error) {
     notice = error instanceof ConfigurationError
-      ? "The directory is not connected to a database yet, so this page is empty."
+      ? "The directory is not connected to a database yet, so this page is empty. Apply the migrations before expecting profiles."
       : toPublicError(error).message;
   }
   if (redirectTo) redirect(redirectTo);

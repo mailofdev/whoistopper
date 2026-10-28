@@ -15,7 +15,7 @@ export default async function AnalyticsPage({ searchParams }: { searchParams: Pr
   const series = productId ? await services.analytics.forProduct(user, productId, from, to) : null;
   return (
     <>
-      <PageHeader title="Analytics" description="Views and outbound clicks for listings you own. Counts skip obvious bots and repeated clicks in the same hour." />
+      <PageHeader title="Analytics" description="Views, outbound clicks, and referring hosts for profiles you own. Counts skip obvious bots and repeated events in the same day. Referral hosts appear after the creator-platform migration is applied." />
       <form className="mb-4 flex flex-wrap gap-2" action="/dashboard/analytics">
         <select className="h-11 rounded-lg border border-line px-3" name="product" defaultValue={productId} aria-label="Listing">
           {products.map((product) => <option key={product.id} value={product.id}>{product.name}</option>)}
@@ -30,6 +30,12 @@ export default async function AnalyticsPage({ searchParams }: { searchParams: Pr
           <ul className="mt-4 space-y-1 text-sm">
             {series.points.map((point) => <li key={point.day} className="flex justify-between"><span>{point.day}</span><span>{point.views} views · {point.clicks} clicks</span></li>)}
           </ul>
+          <h2 className="mt-6 text-sm font-semibold">Referring hosts</h2>
+          {series.referrals.length === 0 ? <p className="mt-2 text-sm text-secondary">No external referring hosts in this window.</p> : (
+            <ul className="mt-2 space-y-1 text-sm">
+              {series.referrals.map((referral) => <li key={referral.host} className="flex justify-between"><span>{referral.host}</span><span>{referral.views} views</span></li>)}
+            </ul>
+          )}
         </Card>
       )}
     </>

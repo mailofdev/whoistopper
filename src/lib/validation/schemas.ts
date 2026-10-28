@@ -50,6 +50,8 @@ export const productSchema = z.object({
       linkedin: socialUrl,
       instagram: socialUrl,
       youtube: socialUrl,
+      twitch: socialUrl,
+      kick: socialUrl,
     })
     .default({}),
   submit: z.boolean(),

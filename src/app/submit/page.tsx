@@ -7,8 +7,8 @@ import { pageMetadata } from "@/lib/metadata";
 import { getServices } from "@/lib/services";
 
 export const metadata = pageMetadata(
-  "Submit a listing",
-  "List a website, profile, or other permitted destination. Organic listings are free. Advertising packages have fixed prices in INR.",
+  "Launch a profile",
+  "Publish a free creator profile. A promotion is an optional labelled advertisement with a fixed price in INR.",
   "/submit",
 );
 
@@ -30,8 +30,8 @@ async function SubmitForm() {
     return (
       <>
         <PageHeader
-          title="Submit a listing"
-          description="No account is required. You get a private link to edit or remove the listing. An organic listing is not an advertisement. A paid package is a labelled advertisement at a fixed price, charged only after the server verifies payment."
+          title="Launch a profile"
+          description="No account is required. You get a private link to edit or remove the profile. A free profile is not an advertisement. A paid package is a labelled advertisement at a fixed price, charged only after the server verifies payment."
         />
         <ListingForm categories={categories} packages={packages} />
       </>

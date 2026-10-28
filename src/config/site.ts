@@ -4,10 +4,10 @@ export const site = {
   shortName: "RankPush",
   domain: "rankpush.lol",
   description:
-    "A public directory of websites, profiles, and other permitted destinations. Advertising packages have fixed prices in INR. An advertisement is not a rating or an endorsement.",
+    "Public profiles for YouTubers, streamers, and gamers. Launch a free profile, get discovered by game and lane, and promote it with a labelled fixed-price advertisement. An advertisement is not a rating or an endorsement.",
   locale: "en-IN",
-  themeColor: "#D4145A",
-  backgroundColor: "#FAF7F5",
+  themeColor: "#0c0d10",
+  backgroundColor: "#0c0d10",
   verificationFile: "rankpush.txt",
 } as const;
 

@@ -1,5 +1,8 @@
 {
+  "/games/[slug]/page": "app/games/[slug]/page.js",
+  "/leaderboard/page": "app/leaderboard/page.js",
   "/page": "app/page.js",
-  "/search/page": "app/search/page.js",
-  "/submit/page": "app/submit/page.js"
+  "/rules/page": "app/rules/page.js",
+  "/submit/page": "app/submit/page.js",
+  "/trending/page": "app/trending/page.js"
 }

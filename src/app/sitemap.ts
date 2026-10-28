@@ -1,9 +1,10 @@
 import type { MetadataRoute } from "next";
+import { GAMES } from "@/config/games";
 import { siteUrl } from "@/config/site";
 import { getServices } from "@/lib/services";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const staticPaths = ["", "/leaderboard", "/leaderboard/today", "/categories", "/search", "/trending", "/new", "/about", "/faq", "/contact", "/rules", "/terms", "/privacy", "/refunds", "/submit"];
+  const staticPaths = ["", "/leaderboard", "/leaderboard/today", "/categories", "/games", "/search", "/trending", "/new", "/about", "/faq", "/contact", "/rules", "/terms", "/privacy", "/refunds", "/submit", ...GAMES.map((game) => `/games/${game.slug}`)];
   const entries: MetadataRoute.Sitemap = staticPaths.map((path) => ({
     url: `${siteUrl()}${path || "/"}`,
     changeFrequency: "daily",

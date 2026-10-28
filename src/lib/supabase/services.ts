@@ -1,7 +1,7 @@
 import { lookup } from "node:dns/promises";
 import { ACTIVE_CATEGORY_SLUGS, isActiveFieldSet, RETIRED_CATEGORY_SLUGS, sanitizeDetails } from "@/config/catalogue";
 import { PACKAGE_DEFAULTS } from "@/config/packages";
-import { utcDayKey } from "@/features/leaderboards/engine";
+import { ORGANIC_RANKING_SUMMARY, utcDayKey } from "@/features/leaderboards/engine";
 import { findReconciliationIssues } from "@/features/payments/reconcile";
 import { readServerEnv } from "@/config/env";
 import { site } from "@/config/site";
@@ -151,6 +151,7 @@ function cardFrom(row: Record<string, unknown>, placement: "paid" | "free" = "fr
     amountPaise: amount,
     ownershipVerified: Boolean(row.ownership_verified),
     approvedAt: (row.approved_at as string | null) ?? null,
+    logoUrl: (row.logo_url as string | null) ?? null,
   };
 }
 
@@ -340,6 +341,21 @@ export const supabaseServices: AppServices = {
       fail(products.error);
       return (products.data ?? []).map((row) => cardFrom(row as unknown as Record<string, unknown>, "free"));
     },
+    async listByTag(tag, limit) {
+      const slug = tag.toLowerCase().replace(/[^a-z0-9-]/g, "");
+      if (!slug) return [];
+      const client = await anon();
+      const tagRow = await client.from("tags").select("id").eq("slug", slug).maybeSingle();
+      fail(tagRow.error);
+      if (!tagRow.data) return [];
+      const links = await client.from("product_tags").select("product_id").eq("tag_id", tagRow.data.id).limit(Math.min(Math.max(limit, 1), 24));
+      fail(links.error);
+      const ids = (links.data ?? []).map((row) => row.product_id);
+      if (ids.length === 0) return [];
+      const products = await client.from("products").select(productSelect).in("id", ids).eq("status", "approved");
+      fail(products.error);
+      return (products.data ?? []).map((row) => cardFrom(row as unknown as Record<string, unknown>));
+    },
     async listOwned(userId) {
       const client = await server();
       const { data, error } = await client.from("products").select(productSelect).eq("owner_id", userId).order("updated_at", { ascending: false });
@@ -516,13 +532,13 @@ export const supabaseServices: AppServices = {
         }
       }
       const category = scope.type === "category" ? (await supabaseServices.categories.list()).find((item) => item.id === scope.key) : null;
-      const title = scope.type === "all_time" ? "Permanent directory" : scope.type === "daily" ? "Today's featured ads" : `${category?.name ?? "Category"} directory`;
+      const title = scope.type === "all_time" ? "Creators" : scope.type === "daily" ? "Promoted today" : `${category?.name ?? "Lane"} creators`;
       return {
         scope,
         title,
         description: scope.type === "daily"
-          ? "Today's Featured Ads are fixed-price advertisements whose campaign is currently inside its disclosed window. Asia/Kolkata is used to display those times. A higher payment does not move an advertisement ahead of one that started earlier."
-          : "Organic listings are ordered by newest approval, then name. Featured advertisements are labelled separately and are not a quality score.",
+          ? "These are fixed-price advertisements whose campaign is currently inside its disclosed window. Asia/Kolkata is used to display those times. A higher payment does not move an advertisement ahead of one that started earlier."
+          : ORGANIC_RANKING_SUMMARY,
         entries,
         page,
         pageSize,
@@ -607,7 +623,19 @@ export const supabaseServices: AppServices = {
       const { data, error } = await client.from("analytics_daily").select("day, views, clicks").eq("product_id", productId).gte("day", from).lte("day", to).order("day");
       fail(error);
       const points: AnalyticsPoint[] = (data ?? []).map((row) => ({ day: row.day, views: row.views, clicks: row.clicks }));
-      return { productId, productName: product.name, points, views: points.reduce((sum, point) => sum + point.views, 0), clicks: points.reduce((sum, point) => sum + point.clicks, 0) };
+      const referrals = await client.from("analytics_referrers").select("host, views").eq("product_id", productId).gte("day", from).lte("day", to);
+      const totals = new Map<string, number>();
+      if (!referrals.error) {
+        for (const row of referrals.data ?? []) totals.set(row.host, (totals.get(row.host) ?? 0) + row.views);
+      }
+      return {
+        productId,
+        productName: product.name,
+        points,
+        views: points.reduce((sum, point) => sum + point.views, 0),
+        clicks: points.reduce((sum, point) => sum + point.clicks, 0),
+        referrals: [...totals.entries()].map(([host, views]) => ({ host, views })).sort((a, b) => b.views - a.views).slice(0, 12),
+      };
     },
     async platform() {
       const client = await anon();
@@ -890,20 +918,30 @@ export const supabaseServices: AppServices = {
   },
 };
 
-async function record(input: { productId: string; userAgent: string; ip: string }, kind: "view" | "click") {
+async function record(input: { productId: string; userAgent: string; ip: string; referrerHost?: string | null }, kind: "view" | "click") {
   if (isLikelyBot(input.userAgent)) return false;
   const salt = process.env.ANALYTICS_SALT || (readServerEnv().NODE_ENV === "production" ? "" : "development-analytics-salt");
   if (!salt) return false;
   try {
     const client = admin();
+    const day = utcDayKey(new Date());
     const { data, error } = await client.rpc("record_engagement", {
       p_product_id: input.productId,
       p_kind: kind,
-      p_dedupe: sha256(`${salt}|${kind}|${input.productId}|${visitorHash(input.ip, input.userAgent, salt)}|${utcDayKey(new Date())}`),
-      p_day: utcDayKey(new Date()),
+      p_dedupe: sha256(`${salt}|${kind}|${input.productId}|${visitorHash(input.ip, input.userAgent, salt)}|${day}`),
+      p_day: day,
     });
     fail(error);
-    return Boolean(data);
+    const recorded = Boolean(data);
+    if (recorded && kind === "view" && input.referrerHost) {
+      const referral = await client.rpc("record_referral", {
+        p_product_id: input.productId,
+        p_day: day,
+        p_host: input.referrerHost,
+      });
+      if (referral.error) log("error", "referral.record", { code: referral.error.code ?? "unknown" });
+    }
+    return recorded;
   } catch (error) {
     if (error instanceof ConfigurationError) return false;
     throw error;

@@ -3,16 +3,12 @@
 
 insert into public.categories (slug, name, description, sort_order, is_active, group_slug, group_name, group_sort, field_set)
 values
-  ('websites-saas', 'Websites & SaaS', 'Public websites, web apps, and software products.', 1, true, 'directory', 'Directory', 1, 'websites-saas'),
-  ('business-startups', 'Business & Startups', 'Companies, brands, and service businesses with a public page.', 2, true, 'directory', 'Directory', 1, 'business-startups'),
-  ('developer-tools', 'Developer Tools', 'Libraries, APIs, CLIs, and other tools for people building software.', 3, true, 'directory', 'Directory', 1, 'developer-tools'),
-  ('instagram-pages', 'Instagram Pages', 'Public Instagram pages. Account passwords and private data are never collected.', 4, true, 'directory', 'Directory', 1, 'instagram-pages'),
-  ('youtube-channels', 'YouTube Channels', 'Public YouTube channels. Listing a channel does not verify its audience.', 5, true, 'directory', 'Directory', 1, 'youtube-channels'),
-  ('other-online-profiles', 'Other Online Profiles', 'Public profiles on LinkedIn, X, a personal site, or a similar network.', 6, true, 'directory', 'Directory', 1, 'other-online-profiles'),
-  ('gaming-esports', 'Gaming & Esports', 'Players, teams, tournaments, communities, and gaming websites.', 7, true, 'directory', 'Directory', 1, 'gaming-esports'),
-  ('art-creative-work', 'Art & Creative Work', 'Public portfolios of illustration, photography, design, writing, and animation.', 8, true, 'directory', 'Directory', 1, 'art-creative-work'),
-  ('music-entertainment', 'Music & Entertainment', 'Musicians, podcasts, entertainment channels, and public events.', 9, true, 'directory', 'Directory', 1, 'music-entertainment'),
-  ('skills-portfolios', 'Skills & Portfolios', 'Professional profiles and portfolios.', 10, true, 'directory', 'Directory', 1, 'skills-portfolios')
+  ('youtube', 'YouTube', 'Channels and YouTube creators with a public page.', 1, true, 'creators', 'Creators', 1, 'creator'),
+  ('streaming', 'Streaming', 'Live streamers on Twitch, Kick, YouTube, and similar public platforms.', 2, true, 'creators', 'Creators', 1, 'creator'),
+  ('gaming', 'Gaming', 'Players and gaming creators. Gambling and cheating services are excluded.', 3, true, 'creators', 'Creators', 1, 'creator'),
+  ('esports', 'Esports', 'Players, teams, and competitive organisations with a public profile.', 4, true, 'creators', 'Creators', 1, 'creator'),
+  ('clips', 'Clips', 'Short-form creators on Shorts, TikTok, Reels, and clip channels.', 5, true, 'creators', 'Creators', 1, 'creator'),
+  ('communities', 'Communities', 'Game communities, shows, and other public creator pages.', 6, true, 'creators', 'Creators', 1, 'creator')
 on conflict (slug) do update
 set name = excluded.name,
     description = excluded.description,
@@ -28,19 +24,15 @@ set is_active = false
 where slug in (
   'saas', 'fintech', 'commerce', 'education', 'health', 'climate', 'media',
   'cars-bikes', 'luxury-gadgets', 'travel-experiences', 'fashion-collections',
-  'achievements-skills', 'fitness-lifestyle'
+  'achievements-skills', 'fitness-lifestyle',
+  'websites-saas', 'business-startups', 'developer-tools', 'instagram-pages',
+  'youtube-channels', 'other-online-profiles', 'gaming-esports', 'art-creative-work',
+  'music-entertainment', 'skills-portfolios'
 );
 
 insert into public.ad_packages (slug, name, description, price_paise, duration_hours, placement, exclusive, is_active, sort_order)
 values
-  ('daily-featured', 'Daily Featured Listing', 'Labelled advertisement on Today''s Featured Ads for 24 hours from activation.', 19900, 24, 'daily_featured', false, true, 1),
-  ('weekly-featured', 'Weekly Featured Listing', 'Labelled advertisement on the permanent directory for seven days from activation.', 99900, 168, 'weekly_featured', false, true, 2),
-  ('weekly-category-sponsor', 'Weekly Category Sponsor', 'Labelled category sponsorship for seven days from activation.', 199900, 168, 'category_sponsor', false, true, 3)
-on conflict (slug) do update
-set name = excluded.name,
-    description = excluded.description,
-    duration_hours = excluded.duration_hours,
-    placement = excluded.placement,
-    exclusive = excluded.exclusive,
-    is_active = true,
-    sort_order = excluded.sort_order;
+  ('daily-featured', 'Daily featured profile', 'Labelled advertisement beside discovery for 24 hours from activation. It does not change the organic score.', 19900, 24, 'daily_featured', false, true, 1),
+  ('weekly-featured', 'Weekly featured profile', 'Labelled advertisement on the creator directory for seven days from activation. Organic profiles keep their own score.', 99900, 168, 'weekly_featured', false, true, 2),
+  ('weekly-category-sponsor', 'Weekly lane sponsor', 'Labelled sponsorship on one creator lane for seven days from activation. The organic list in that lane is unchanged.', 199900, 168, 'category_sponsor', false, true, 3)
+on conflict (slug) do nothing;

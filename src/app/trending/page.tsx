@@ -6,7 +6,7 @@ import { toPublicError } from "@/lib/errors";
 import { pageMetadata } from "@/lib/metadata";
 import { getServices } from "@/lib/services";
 
-export const metadata = pageMetadata("Trending", "Products ordered by outbound clicks in the last 7 days.", "/trending");
+export const metadata = pageMetadata("Trending", "Creators ordered by outbound clicks in the last 7 days.", "/trending");
 
 export default function Page() {
   return <Suspense fallback={<Skeleton className="h-40" />}><List /></Suspense>;
@@ -19,7 +19,7 @@ async function List() {
     return (
       <>
         <PageHeader title="Trending" description="Ordered by counted outbound clicks over the last 7 UTC days. This is not a paid rank." />
-        {items.length === 0 ? <EmptyState title="No trend yet" body="Trending appears after real outbound clicks are counted." /> : <div className="grid gap-3">{items.map((product) => <ProductCard key={product.id} product={product} />)}</div>}
+        {items.length === 0 ? <EmptyState title="No trend yet" body="Trending appears after real outbound clicks are counted." /> : <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{items.map((product) => <ProductCard key={product.id} product={product} />)}</div>}
       </>
     );
   } catch (error) {

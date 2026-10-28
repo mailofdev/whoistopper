@@ -17,8 +17,8 @@ export interface AdPackageDefinition {
 export const PACKAGE_DEFAULTS: readonly AdPackageDefinition[] = [
   {
     slug: "daily-featured",
-    name: "Daily Featured Listing",
-    description: "A labelled advertisement on Today's Featured Ads for 24 hours from activation. It does not buy a rank, and a higher payment cannot move it ahead of an advertisement that started earlier.",
+    name: "Daily featured profile",
+    description: "A labelled advertisement beside discovery for 24 hours from activation. It does not change the organic score, and a higher payment cannot move it ahead of an advertisement that started earlier.",
     pricePaise: 19_900,
     durationHours: 24,
     placement: "daily_featured",
@@ -26,8 +26,8 @@ export const PACKAGE_DEFAULTS: readonly AdPackageDefinition[] = [
   },
   {
     slug: "weekly-featured",
-    name: "Weekly Featured Listing",
-    description: "A labelled advertisement in the featured strip on the permanent directory for seven days from activation. Organic listings stay in their own order.",
+    name: "Weekly featured profile",
+    description: "A labelled advertisement on the creator directory for seven days from activation. Organic profiles keep their own score.",
     pricePaise: 99_900,
     durationHours: 24 * 7,
     placement: "weekly_featured",
@@ -35,8 +35,8 @@ export const PACKAGE_DEFAULTS: readonly AdPackageDefinition[] = [
   },
   {
     slug: "weekly-category-sponsor",
-    name: "Weekly Category Sponsor",
-    description: "A labelled sponsorship on one category for seven days from activation. Sponsors share that slot in start-time order. The organic category list is unchanged.",
+    name: "Weekly lane sponsor",
+    description: "A labelled sponsorship on one creator lane for seven days from activation. Sponsors share that slot in start-time order. The organic list in that lane is unchanged.",
     pricePaise: 199_900,
     durationHours: 24 * 7,
     placement: "category_sponsor",

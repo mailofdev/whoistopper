@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { Alert, Skeleton } from "@/components/ui/primitives";
 import { site } from "@/config/site";
+import { ORGANIC_RANKING_SUMMARY } from "@/features/leaderboards/engine";
 import { PACKAGE_DEFAULTS } from "@/config/packages";
 import { toPublicError } from "@/lib/errors";
 import { pageMetadata } from "@/lib/metadata";
@@ -9,7 +10,7 @@ import { getServices } from "@/lib/services";
 
 export const metadata = pageMetadata(
   "About",
-  "RankPush is a public directory. Fixed-price advertisements are labelled and are not a rating or an endorsement.",
+  "RankPush publishes free creator profiles and labelled fixed-price advertisements. An advertisement is not a rating or an endorsement.",
   "/about",
 );
 
@@ -42,7 +43,7 @@ async function About() {
       <header>
         <h1 className="text-4xl font-semibold tracking-tight">About</h1>
         <p className="mt-4 leading-7 text-secondary">
-          {site.name} is a public directory of websites, digital products, creator profiles, and other permitted destinations. There is no auction, no bidding, and no pay-more-to-move-ahead.
+          {site.name} is a public launch and discovery platform for YouTubers, streamers, and gamers. A profile is free. There is no auction, no bidding, and no pay-more-to-move-ahead.
         </p>
         <p className="mt-3 leading-7 text-secondary">
           An advertisement is a fixed package with a disclosed price, place, and duration. It is not a review, a rating, or an endorsement, and it does not promise traffic or sales.
@@ -50,15 +51,15 @@ async function About() {
       </header>
       {notice ? <Alert>{notice}</Alert> : (
         <section className="grid gap-3 sm:grid-cols-3">
-          <Stat value={String(listed)} label="listings in the directory sample" />
-          <Stat value={String(categories)} label="active categories" />
+          <Stat value={String(listed)} label="profiles in the current directory sample" />
+          <Stat value={String(categories)} label="open creator lanes" />
           <Stat value={formatInrFromPaise(PACKAGE_DEFAULTS[0].pricePaise)} label="current daily package test price" />
         </section>
       )}
       <section className="space-y-3">
         <h2 className="text-xl font-semibold">How placement works</h2>
         <div className="grid gap-3 sm:grid-cols-3">
-          <Note title="Organic listings" body="Approved listings stay in the directory, newest approval first, then name. Spend does not change that order." />
+          <Note title="Organic profiles" body={ORGANIC_RANKING_SUMMARY} />
           <Note title="Fixed packages" body="Daily, weekly, and category packages say where the advertisement appears and how long it runs." />
           <Note title="Shared slots" body="When several advertisements share a place, the earlier activation stays ahead. A larger payment does not jump the queue." />
         </div>

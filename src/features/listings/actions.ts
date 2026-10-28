@@ -3,6 +3,7 @@
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { assertPermittedCopy, fieldsFor, isActiveFieldSet, sanitizeDetails } from "@/config/catalogue";
+import { gameSlugs } from "@/config/games";
 import { openPackageCheckout } from "@/features/payments/packages";
 import { readListingImage } from "@/features/listings/media";
 import { newToken, sha256 } from "@/lib/security/hash";
@@ -21,7 +22,7 @@ function text(formData: FormData, key: string): string {
 
 function socialLinks(formData: FormData) {
   const links: Record<string, string> = {};
-  for (const key of ["x", "instagram", "linkedin", "youtube"] as const) {
+  for (const key of ["x", "instagram", "linkedin", "youtube", "twitch", "kick"] as const) {
     const value = text(formData, `social_${key}`);
     if (!value) continue;
     links[key] = normalizeWebsiteUrl(value);
@@ -116,6 +117,7 @@ export async function submitListingAction(formData: FormData): Promise<ListingRe
       return { ok: false, error: "Could not save this listing." };
     }
 
+    await syncGameTags(admin, inserted.data.id, details.games);
     const credential = await admin.from("listing_manage_tokens").insert({ product_id: inserted.data.id, token_hash: sha256(token) });
     if (credential.error) return { ok: false, error: "The listing was saved, but the private link could not be created. Contact support with the public URL." };
 
@@ -219,6 +221,7 @@ export async function updateManagedListingAction(formData: FormData): Promise<Li
     }
     const { error } = await found.admin.from("products").update(patch).eq("id", current.id);
     if (error) return { ok: false, error: "Could not update this listing." };
+    await syncGameTags(found.admin, current.id, details.games);
     revalidatePath(`/products/${current.slug}`);
     return { ok: true, managePath: `/manage/${token}` };
   } catch (error) {
@@ -260,4 +263,19 @@ export async function removeManagedListingAction(formData: FormData): Promise<{ 
   revalidatePath("/");
   revalidatePath(`/products/${product.slug}`);
   return { ok: true };
+}
+
+async function syncGameTags(
+  admin: NonNullable<ReturnType<typeof createSupabaseAdminClient>>,
+  productId: string,
+  games: string | undefined,
+) {
+  const slugs = gameSlugs(games);
+  const removed = await admin.from("product_tags").delete().eq("product_id", productId);
+  if (removed.error) return;
+  for (const slug of slugs) {
+    const saved = await admin.from("tags").upsert({ slug, name: slug.replace(/-/g, " ") }, { onConflict: "slug" }).select("id").single();
+    if (!saved.data) continue;
+    await admin.from("product_tags").insert({ product_id: productId, tag_id: saved.data.id });
+  }
 }

@@ -18,7 +18,7 @@ Validate variables with the health route. `configurationGaps()` lists what is mi
 
 ## Database
 
-Apply migrations before the app starts taking orders. Take a backup first. Do not edit applied migration files; add a new one. Restore by creating a new Supabase project from the backup and pointing the environment at it. Confirm the provider's backup retention on the paid plan you use.
+Apply migrations before the app starts taking orders, including `20261028120000_creator_platform.sql`. That migration opens the creator lanes, scores organic profiles, and stores referring hosts. Take a backup first. Do not edit applied migration files; add a new one. Re-run `supabase/seed.sql` only if you want the seed to insert missing packages; it does not overwrite an administrator's package row. Restore by creating a new Supabase project from the backup and pointing the environment at it. Confirm the provider's backup retention on the paid plan you use.
 
 Schedule `POST /api/cron/daily` with `Authorization: Bearer <CRON_SECRET>` after 00:05 UTC so the previous day is complete.
 

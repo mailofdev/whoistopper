@@ -56,11 +56,14 @@ export interface OrganicRow {
   id: string;
   name: string;
   approvedAt: string | null;
+  organicScore?: number;
 }
 
-/** Organic directory order is newest approval, then name. Payment is ignored. */
+/** Higher organic score first. Equal scores use newer approval, then name. Payment is ignored. */
 export function orderOrganic<T extends OrganicRow>(rows: T[]): T[] {
   return [...rows].sort((a, b) => {
+    const score = (b.organicScore ?? 0) - (a.organicScore ?? 0);
+    if (score !== 0) return score;
     const left = a.approvedAt ?? "";
     const right = b.approvedAt ?? "";
     if (left !== right) return left < right ? 1 : -1;

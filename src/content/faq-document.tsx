@@ -8,10 +8,10 @@ export function FaqDocument() {
   return (
     <LegalDocument title="FAQ" updated="This page describes the fixed-price directory. It needs qualified Indian legal review before you rely on it.">
       <LegalSection title="What is RankPush?">
-        <p>{site.name} is a public directory of websites, digital products, creator profiles, and other permitted destinations. Paid placements are advertisements with a fixed price and a fixed duration. They are not ratings or endorsements.</p>
+        <p>{site.name} publishes free public profiles for YouTubers, streamers, and gamers. Paid placements are advertisements with a fixed price and a fixed duration. They are not ratings or endorsements.</p>
       </LegalSection>
       <LegalSection title="How do listings work?">
-        <p>Choose a category, complete the fields for that category, and submit. You do not need an account. You receive a private link to edit or remove the listing. New listings can be held for review. Organic listings, once approved, appear in newest-approval order.</p>
+        <p>Choose a lane, complete the creator fields, and submit. You do not need an account. You receive a private link to edit or remove the profile. New profiles can be held for review. Once approved, organic order follows the published score on the rules page. Spend does not change that score.</p>
       </LegalSection>
       <LegalSection title="What does an advertiser purchase?">
         <p>A named package: where the advertisement appears, how long it runs, and the price in INR. The server sets the price. The form cannot choose a different one.</p>
@@ -26,7 +26,7 @@ export function FaqDocument() {
         <p>A daily featured listing runs for 24 hours from activation. A weekly featured listing and a weekly category sponsorship run for seven days from activation. If the listing is still in review, the clock starts when it is approved. The confirmed start and end are stored in Asia/Kolkata time when the campaign becomes active.</p>
       </LegalSection>
       <LegalSection title="Where will an advertisement appear?">
-        <p>Daily Featured Listing: Today&apos;s Featured Ads. Weekly Featured Listing: the featured strip on the permanent directory. Weekly Category Sponsor: the sponsored area of that one category. Organic results stay in their own list.</p>
+        <p>Daily featured profile: the promoted strip. Weekly featured profile: the creator directory. Weekly lane sponsor: one lane. Organic results stay in their own score order.</p>
       </LegalSection>
       <LegalSection title="How are placements allocated?">
         <p>You buy the package you selected. Packages are not exclusive unless a future package says so and the server refuses an overlapping sale. Shared places are ordered by activation time. Paying more does not move you ahead of an advertisement that started earlier.</p>

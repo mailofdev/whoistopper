@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Outfit } from "next/font/google";
 import Script from "next/script";
 import { AppStatus } from "@/components/layout/mobile-nav";
 import { SiteFooter } from "@/components/layout/site-footer";
@@ -9,6 +9,7 @@ import "./globals.css";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
+const outfit = Outfit({ variable: "--font-outfit", subsets: ["latin"] });
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl()),
@@ -26,10 +27,10 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en-IN" data-scroll-behavior="smooth" className={`${geistSans.variable} ${geistMono.variable} h-full`} suppressHydrationWarning>
+    <html lang="en-IN" data-theme="dark" data-scroll-behavior="smooth" className={`${geistSans.variable} ${geistMono.variable} ${outfit.variable} h-full`} suppressHydrationWarning>
       <body className="flex min-h-full flex-col antialiased">
         <Script id="rp-theme" strategy="beforeInteractive">
-          {`try{var t=localStorage.getItem('rp-theme')||localStorage.getItem('wit-theme');if(t==='dark')document.documentElement.dataset.theme='dark'}catch(e){}`}
+          {`try{var t=localStorage.getItem('rp-theme')||localStorage.getItem('wit-theme');document.documentElement.dataset.theme=t==='light'?'light':'dark'}catch(e){}`}
         </Script>
         <AppStatus />
         <SiteHeader />

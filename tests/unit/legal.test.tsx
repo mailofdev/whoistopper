@@ -1,7 +1,7 @@
 /**
  * @vitest-environment jsdom
  */
-import { render, screen } from "@testing-library/react";
+import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { FaqDocument } from "@/content/faq-document";
 import { PrivacyDocument } from "@/content/privacy-document";

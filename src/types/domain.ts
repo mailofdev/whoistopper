@@ -47,6 +47,8 @@ export interface SocialLinks {
   linkedin?: string;
   instagram?: string;
   youtube?: string;
+  twitch?: string;
+  kick?: string;
 }
 
 export interface ProductDetail {
@@ -94,6 +96,7 @@ export interface ProductCardModel {
   amountPaise: number | null;
   ownershipVerified: boolean;
   approvedAt: string | null;
+  logoUrl?: string | null;
 }
 
 export type LeaderboardScope =
@@ -184,12 +187,18 @@ export interface AnalyticsPoint {
   clicks: number;
 }
 
+export interface ReferralCount {
+  host: string;
+  views: number;
+}
+
 export interface AnalyticsSeries {
   productId: string;
   productName: string;
   points: AnalyticsPoint[];
   views: number;
   clicks: number;
+  referrals: ReferralCount[];
 }
 
 export interface PlatformStats {

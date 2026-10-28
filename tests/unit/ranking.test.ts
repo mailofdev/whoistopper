@@ -39,6 +39,14 @@ describe("fixed-price campaigns", () => {
     expect(ordered.map((item) => item.id)).toEqual(["a", "c", "b"]);
   });
 
+  it("lets a higher organic score outrank a newer approval", () => {
+    const ordered = orderOrganic([
+      { id: "new", name: "New", approvedAt: "2026-10-02T00:00:00.000Z", organicScore: 10 },
+      { id: "active", name: "Active", approvedAt: "2026-09-01T00:00:00.000Z", organicScore: 40 },
+    ]);
+    expect(ordered.map((item) => item.id)).toEqual(["active", "new"]);
+  });
+
   it("rejects a client price that does not match the server package", () => {
     expect(priceForCheckout(19900)).toBe(19900);
     expect(priceForCheckout(19900, 19900)).toBe(19900);

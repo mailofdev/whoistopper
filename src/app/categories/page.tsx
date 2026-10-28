@@ -7,7 +7,7 @@ import { getServices } from "@/lib/services";
 
 export const metadata = pageMetadata(
   "Categories",
-  "Ten public categories. Organic listings are newest first. Sponsorships are labelled advertisements.",
+  "Creator lanes. Organic order uses the published score. Sponsorships are labelled advertisements.",
   "/categories",
 );
 
@@ -25,8 +25,8 @@ async function CategoryList() {
     return (
       <div className="space-y-6">
         <header>
-          <h1 className="text-4xl font-semibold tracking-tight">Categories</h1>
-          <p className="mt-3 max-w-2xl text-secondary">Choose a category to browse organic listings. A category sponsorship is a labelled advertisement and does not reorder the organic list.</p>
+          <h1 className="text-4xl font-semibold tracking-tight">Lanes</h1>
+          <p className="mt-3 max-w-2xl text-secondary">Choose a lane to browse creators. A lane sponsorship is a labelled advertisement and does not change the organic score.</p>
         </header>
         <div className="grid gap-3 md:grid-cols-2">
           {categories.map((category) => (

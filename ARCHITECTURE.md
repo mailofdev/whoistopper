@@ -2,7 +2,7 @@
 
 ## Layout
 
-- `src/app` — App Router pages, route handlers, metadata, sitemap, and robots.
+- `src/app` — App Router pages, route handlers, metadata, sitemap, and robots. The home page is the creator launch surface. `/leaderboard` is the organic directory.
 - `src/components/ui` — buttons, forms, cards, badges, pagination.
 - `src/components/layout` — header, footer, mobile menu, and offline status. PWA install is not active.
 - `src/features` — auth, products, public listings, leaderboard rules, payments, admin, profiles, ownership. Daily boards use the IST date.

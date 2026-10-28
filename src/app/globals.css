@@ -1,39 +1,40 @@
 @import "tailwindcss";
 
-:root {
-  --brand: #d4145a;
-  --brand-hover: #a80f48;
-  --on-brand: #ffffff;
-  --gold: #f0b429;
-  --navy: #241018;
-  --background: #faf7f5;
-  --surface: #ffffff;
-  --surface-muted: #f3ece8;
-  --teal: #0e9f78;
-  --text-secondary: #6e5c63;
-  --border: #eadfdc;
-  --error: #dc2626;
-  --warning: #d97706;
-  --shadow: 0 1px 2px rgb(36 16 24 / 6%), 0 12px 32px rgb(212 20 90 / 7%);
-  color-scheme: light;
+:root,
+[data-theme="dark"] {
+  --brand: #e4a24a;
+  --brand-hover: #f0b86a;
+  --on-brand: #1a1206;
+  --gold: #e4a24a;
+  --navy: #f4efe6;
+  --background: #0c0d10;
+  --surface: #16181d;
+  --surface-muted: #22262e;
+  --teal: #6dceb0;
+  --text-secondary: #b7b1a6;
+  --border: #2c313a;
+  --error: #f07178;
+  --warning: #e4a24a;
+  --shadow: 0 18px 40px rgb(0 0 0 / 32%);
+  color-scheme: dark;
 }
 
-[data-theme="dark"] {
-  --brand: #ff6b9d;
-  --brand-hover: #ff8fb5;
-  --on-brand: #2a0814;
-  --gold: #f5c451;
-  --navy: #fbeaf2;
-  --background: #140910;
-  --surface: #24141c;
-  --surface-muted: #3a1c2c;
-  --teal: #3dd6a5;
-  --text-secondary: #d4b3c2;
-  --border: #4e2d3e;
-  --error: #fb7185;
-  --warning: #fbbf24;
-  --shadow: 0 1px 2px rgb(0 0 0 / 35%);
-  color-scheme: dark;
+[data-theme="light"] {
+  --brand: #9a6420;
+  --brand-hover: #7c4e14;
+  --on-brand: #fffaf3;
+  --gold: #9a6420;
+  --navy: #1c140c;
+  --background: #f7f3ec;
+  --surface: #fffdf9;
+  --surface-muted: #efe8dc;
+  --teal: #0e7a62;
+  --text-secondary: #6d6256;
+  --border: #e4d9cb;
+  --error: #b42318;
+  --warning: #9a6420;
+  --shadow: 0 1px 2px rgb(28 20 12 / 6%), 0 12px 32px rgb(154 100 32 / 8%);
+  color-scheme: light;
 }
 
 @theme inline {
@@ -52,6 +53,7 @@
   --color-warning: var(--warning);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-outfit);
   --shadow-card: var(--shadow);
 }
 
@@ -68,18 +70,25 @@ body {
   margin: 0;
   background-color: var(--background);
   background-image:
-    radial-gradient(36rem 18rem at 0% -10%, color-mix(in srgb, var(--brand) 10%, transparent), transparent 60%),
-    radial-gradient(28rem 16rem at 100% 0%, color-mix(in srgb, var(--gold) 16%, transparent), transparent 58%);
+    radial-gradient(36rem 18rem at 0% -10%, color-mix(in srgb, var(--brand) 14%, transparent), transparent 60%),
+    radial-gradient(28rem 16rem at 100% 0%, color-mix(in srgb, var(--teal) 10%, transparent), transparent 58%);
   color: var(--navy);
   font-family: var(--font-geist-sans), sans-serif;
 }
 
+h1,
+h2,
+h3 {
+  font-family: var(--font-outfit), var(--font-geist-sans), sans-serif;
+  letter-spacing: -0.03em;
+}
+
 .glass {
-  background: color-mix(in srgb, var(--surface) 94%, transparent);
-  border: 1px solid var(--border);
-  box-shadow: 0 1px 2px rgb(36 16 24 / 4%), 0 10px 28px rgb(36 16 24 / 5%);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  border: 1px solid color-mix(in srgb, white 12%, transparent);
+  box-shadow: var(--shadow), inset 0 1px 0 color-mix(in srgb, white 8%, transparent);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 
 dialog.confirm-rank {
@@ -95,12 +104,10 @@ dialog.confirm-rank::backdrop {
   background: rgb(20 10 16 / 46%);
 }
 
-[data-theme="dark"] .glass {
-  background: color-mix(in srgb, var(--surface) 82%, transparent);
-  border-color: color-mix(in srgb, white 22%, transparent);
-  box-shadow:
-    0 18px 50px rgb(0 0 0 / 40%),
-    inset 0 1px 0 color-mix(in srgb, white 16%, transparent);
+[data-theme="light"] .glass {
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  border-color: var(--border);
+  box-shadow: var(--shadow);
 }
 
 .glass-field {
@@ -136,6 +143,7 @@ dialog.confirm-rank::backdrop {
   }
 }
 
-.theme-sun { display: none; }
-[data-theme="dark"] .theme-moon { display: none; }
-[data-theme="dark"] .theme-sun { display: inline; }
+.theme-sun { display: inline; }
+.theme-moon { display: none; }
+[data-theme="light"] .theme-sun { display: none; }
+[data-theme="light"] .theme-moon { display: inline; }

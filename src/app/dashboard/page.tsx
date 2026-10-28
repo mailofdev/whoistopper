@@ -13,7 +13,7 @@ export default async function DashboardPage() {
   ]);
   return (
     <>
-      <PageHeader title="Overview" description="Your listings, ranks, and unread notices." action={<Link className="inline-flex h-11 items-center rounded-lg bg-brand px-4 text-sm font-semibold text-on-brand" href="/submit">Add a product</Link>} />
+      <PageHeader title="Studio" description="Your profiles, promotions, and unread notices." action={<Link className="inline-flex h-11 items-center rounded-lg bg-brand px-4 text-sm font-semibold text-on-brand" href="/submit">Launch a profile</Link>} />
       {!user.emailVerified ? <p className="mb-4 text-sm text-warning">Email is not verified yet. Check your inbox or the development inbox on the verification page.</p> : null}
       <div className="grid gap-3">
         {products.map((product) => (
@@ -24,7 +24,7 @@ export default async function DashboardPage() {
                 <p className="text-sm text-secondary">{product.status.replaceAll("_", " ")} · {product.ownershipVerified ? "Ownership verified" : "Ownership pending"}</p>
               </div>
               <div className="text-sm">
-                <Badge tone="free">Organic listing</Badge>
+                <Badge tone="free">Organic profile</Badge>
               </div>
             </div>
           </Card>

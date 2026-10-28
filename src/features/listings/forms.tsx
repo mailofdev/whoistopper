@@ -33,8 +33,8 @@ export function ListingForm({ categories, packages }: { categories: Category[]; 
   if (saved) {
     return (
       <div className="glass space-y-4 rounded-3xl p-5">
-        <h2 className="text-xl font-semibold">Listing saved</h2>
-        <p className="text-sm leading-6 text-secondary">This private link is the only way to edit the listing. It is not shown on the public page. Store it now. Replacing or revoking it makes this address stop working.</p>
+        <h2 className="text-xl font-semibold">Profile saved</h2>
+        <p className="text-sm leading-6 text-secondary">This private link is the only way to edit the profile. It is not shown on the public page. Store it now. Replacing or revoking it makes this address stop working.</p>
         {saved.warning ? <Alert tone="info">{saved.warning}</Alert> : null}
         <p className="break-all rounded-2xl bg-muted px-3 py-3 text-sm"><Link className="font-semibold text-brand" href={saved.managePath}>Open the private manage link</Link></p>
         {saved.checkoutHref ? <Link className="inline-flex h-11 items-center rounded-full bg-brand px-4 text-sm font-semibold text-on-brand" href={saved.checkoutHref}>Continue to payment</Link> : null}
@@ -62,9 +62,9 @@ export function ListingForm({ categories, packages }: { categories: Category[]; 
     >
       {error ? <Alert>{error}</Alert> : null}
       <Field label="Search categories">
-        <TextInput value={filter} onChange={(event) => setFilter(event.target.value)} placeholder="Search the 10 categories" aria-label="Search categories" />
+        <TextInput value={filter} onChange={(event) => setFilter(event.target.value)} placeholder="Search lanes" aria-label="Search categories" />
       </Field>
-      <Field label="Category" hint={category?.description}>
+      <Field label="Lane" hint={category?.description}>
         <SelectInput
           name="categorySlug"
           value={category?.slug ?? ""}
@@ -96,7 +96,7 @@ export function ListingForm({ categories, packages }: { categories: Category[]; 
           {visible.map((item) => <option key={item.id} value={item.slug}>{item.name}</option>)}
         </SelectInput>
       </Field>
-      <Field label="Title" hint="The public name. It is not a verified claim.">
+      <Field label="Creator name" hint="The public name on the profile. It is not a verified claim.">
         <TextInput name="name" required minLength={2} maxLength={80} />
       </Field>
       <Field label="Short description">
@@ -105,13 +105,13 @@ export function ListingForm({ categories, packages }: { categories: Category[]; 
       <Field label="Description">
         <TextArea name="fullDescription" required minLength={12} maxLength={5000} />
       </Field>
-      <Field label="Public URL" hint="The page people should open. Shorteners and private hosts are blocked.">
+      <Field label="Channel or profile URL" hint="The page people should open. Shorteners and private hosts are blocked.">
         <TextInput name="websiteUrl" type="url" required placeholder="https://" />
       </Field>
-      <Field label="Your display name" hint="Shown as the submitter. This does not verify ownership.">
+      <Field label="Your name" hint="Shown as the person who submitted the profile. This does not verify ownership.">
         <TextInput name="creatorName" maxLength={80} />
       </Field>
-      <Field label="Image or logo" hint="Optional JPEG, PNG, or WebP under 2 MB.">
+      <Field label="Avatar" hint="Optional JPEG, PNG, or WebP under 2 MB. An avatar adds 10 points to the organic score.">
         <input className="block text-sm" name="image" type="file" accept="image/jpeg,image/png,image/webp" />
       </Field>
       {fields.map((field) => (
@@ -130,16 +130,18 @@ export function ListingForm({ categories, packages }: { categories: Category[]; 
       ))}
       <fieldset className="grid gap-3 sm:grid-cols-2">
         <legend className="mb-2 text-sm font-medium">Optional social links</legend>
-        <TextInput name="social_instagram" placeholder="https://instagram.com/…" aria-label="Instagram URL" />
         <TextInput name="social_youtube" placeholder="https://youtube.com/…" aria-label="YouTube URL" />
+        <TextInput name="social_twitch" placeholder="https://twitch.tv/…" aria-label="Twitch URL" />
+        <TextInput name="social_kick" placeholder="https://kick.com/…" aria-label="Kick URL" />
+        <TextInput name="social_instagram" placeholder="https://instagram.com/…" aria-label="Instagram URL" />
         <TextInput name="social_x" placeholder="https://x.com/…" aria-label="X URL" />
         <TextInput name="social_linkedin" placeholder="https://linkedin.com/…" aria-label="LinkedIn URL" />
       </fieldset>
       <fieldset>
-        <legend className="text-sm font-medium">Advertising</legend>
+        <legend className="text-sm font-medium">Promotion</legend>
         <div className="mt-2 flex flex-wrap gap-4 text-sm">
-          <label className="flex items-center gap-2"><input type="radio" name="placement" value="free" checked={placement === "free"} onChange={() => setPlacement("free")} /> Organic listing</label>
-          <label className="flex items-center gap-2"><input type="radio" name="placement" value="paid" checked={placement === "paid"} onChange={() => setPlacement("paid")} /> Fixed-price advertisement</label>
+          <label className="flex items-center gap-2"><input type="radio" name="placement" value="free" checked={placement === "free"} onChange={() => setPlacement("free")} /> Free profile</label>
+          <label className="flex items-center gap-2"><input type="radio" name="placement" value="paid" checked={placement === "paid"} onChange={() => setPlacement("paid")} /> Labelled advertisement</label>
         </div>
       </fieldset>
       {placement === "paid" && selectedPackage ? (
@@ -171,11 +173,11 @@ export function ListingForm({ categories, packages }: { categories: Category[]; 
       {previewing ? (
         <div className="rounded-2xl bg-muted px-4 py-3 text-sm leading-6" aria-live="polite">
           <p className="font-semibold text-navy">Preview</p>
-          <p>{category?.name}. {placement === "paid" && selectedPackage ? `${selectedPackage.name} at ${formatInrFromPaise(selectedPackage.pricePaise)}. This is an advertisement, not a rating.` : "Organic listing. It is not an advertisement."}</p>
-          <p>Submit stores this listing. A paid campaign starts only after the payment is verified on the server.</p>
+          <p>{category?.name}. {placement === "paid" && selectedPackage ? `${selectedPackage.name} at ${formatInrFromPaise(selectedPackage.pricePaise)}. This is an advertisement, not a rating.` : "Free profile. It is not an advertisement."}</p>
+          <p>Submit stores this profile. A paid campaign starts only after the payment is verified on the server.</p>
         </div>
       ) : null}
-      <Button type="submit" disabled={pending || open.length === 0}>{pending ? "Saving…" : previewing ? "Submit listing" : "Review listing"}</Button>
+      <Button type="submit" disabled={pending || open.length === 0}>{pending ? "Saving…" : previewing ? "Publish profile" : "Review profile"}</Button>
     </form>
   );
 }
@@ -241,8 +243,10 @@ export function ManageForm({
             )}
           </Field>
         ))}
-        <TextInput name="social_instagram" defaultValue={listing.socialLinks.instagram ?? ""} aria-label="Instagram URL" placeholder="https://instagram.com/…" />
         <TextInput name="social_youtube" defaultValue={listing.socialLinks.youtube ?? ""} aria-label="YouTube URL" placeholder="https://youtube.com/…" />
+        <TextInput name="social_twitch" defaultValue={listing.socialLinks.twitch ?? ""} aria-label="Twitch URL" placeholder="https://twitch.tv/…" />
+        <TextInput name="social_kick" defaultValue={listing.socialLinks.kick ?? ""} aria-label="Kick URL" placeholder="https://kick.com/…" />
+        <TextInput name="social_instagram" defaultValue={listing.socialLinks.instagram ?? ""} aria-label="Instagram URL" placeholder="https://instagram.com/…" />
         <TextInput name="social_x" defaultValue={listing.socialLinks.x ?? ""} aria-label="X URL" placeholder="https://x.com/…" />
         <TextInput name="social_linkedin" defaultValue={listing.socialLinks.linkedin ?? ""} aria-label="LinkedIn URL" placeholder="https://linkedin.com/…" />
         <label className="flex items-start gap-2 text-sm">

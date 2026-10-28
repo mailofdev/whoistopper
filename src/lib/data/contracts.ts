@@ -45,6 +45,7 @@ export interface AppServices {
     getPublicBySlug(slug: string): Promise<ProductDetail | null>;
     listRecent(limit: number): Promise<ProductCardModel[]>;
     listTrending(limit: number): Promise<ProductCardModel[]>;
+    listByTag(tag: string, limit: number): Promise<ProductCardModel[]>;
     listOwned(userId: string): Promise<ProductDetail[]>;
     getManageable(user: SessionUser, id: string): Promise<ProductDetail | null>;
     create(user: SessionUser, input: ProductInput): Promise<ProductDetail>;
@@ -67,7 +68,7 @@ export interface AppServices {
     reconcile(): Promise<ReconciliationIssue[]>;
   };
   analytics: {
-    recordView(input: { productId: string; userAgent: string; ip: string }): Promise<void>;
+    recordView(input: { productId: string; userAgent: string; ip: string; referrerHost?: string | null }): Promise<void>;
     recordClick(input: { productId: string; userAgent: string; ip: string }): Promise<boolean>;
     forProduct(user: SessionUser, productId: string, from: string, to: string): Promise<AnalyticsSeries>;
     platform(): Promise<PlatformStats>;
